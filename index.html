@@ -144,7 +144,7 @@ details summary{cursor:pointer;font-weight:600}
 </style>
 
 
-<style>.login{max-width:420px;margin:8vh auto 0;display:grid;gap:14px;text-align:center}.lg-brand{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;letter-spacing:.14em;color:var(--gold)}.lg-brand small{display:block;font-size:12px;letter-spacing:.5em;color:var(--ink,#1a1714)}.login .f{text-align:right}.box,.tblwrap{min-width:0;max-width:100%}.tblwrap{overflow-x:auto}select{font:inherit;padding:10px;border-radius:10px;border:1px solid #d8d0c0;background:#fff}</style>
+<style>.login{max-width:420px;margin:8vh auto 0;display:grid;gap:14px;text-align:center}.lg-brand{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;letter-spacing:.14em;color:var(--gold)}.lg-brand small{display:block;font-size:12px;letter-spacing:.5em;color:var(--ink,#1a1714)}.login .f{text-align:right}.box,.tblwrap{min-width:0;max-width:100%}.tblwrap{overflow-x:auto}body.lg{padding-right:0!important;padding-left:0!important}select{font:inherit;padding:10px;border-radius:10px;border:1px solid #d8d0c0;background:#fff}</style>
 <script src="config.js"></script>
 </head>
 <body>
@@ -206,8 +206,8 @@ const FH=(()=>{
     <label class="f" for="lgPin"><span>رمز الدخول</span><input id="lgPin" type="password" dir="ltr" autocomplete="current-password" autocapitalize="off" spellcheck="false"></label>
     ${msg?`<div class="chk bad"><i>✕</i><span>${msg}</span></div>`:''}<button class="btn primary" type="button" id="lgGo">دخول</button></div>`}
   function login(){return new Promise(async done=>{const nav=document.getElementById('appnav');
-    const show=msg=>{nav.style.display='none';const v=document.getElementById('view');v.innerHTML=loginView(msg);const i=document.getElementById('lgPin');i.focus();
-      const go=async()=>{const p=i.value.trim();if(!p)return;PIN=p;document.getElementById('lgGo').disabled=true;try{Object.assign(me,await call('check',{},2));ls.set('fhm_pin',p);nav.style.display='';done(true)}catch(e){PIN='';show(e.message)}};
+    const show=msg=>{nav.style.display='none';document.body.classList.add('lg');const v=document.getElementById('view');v.innerHTML=loginView(msg);const i=document.getElementById('lgPin');i.focus();
+      const go=async()=>{const p=i.value.trim();if(!p)return;PIN=p;document.getElementById('lgGo').disabled=true;try{Object.assign(me,await call('check',{},2));ls.set('fhm_pin',p);nav.style.display='';document.body.classList.remove('lg');done(true)}catch(e){PIN='';show(e.message)}};
       document.getElementById('lgGo').onclick=go;i.onkeydown=e=>{if(e.key==='Enter')go()}};
     if(PIN){try{Object.assign(me,await call('check',{},3));done(true);return}catch(e){if(e.raw==='PIN'){ls.set('fhm_pin','');PIN=''}else{show(e.message);return}}}
     show('')})}
