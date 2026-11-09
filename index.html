@@ -297,7 +297,7 @@ function compute(p,s){
   comp.sort((a,b)=>b.pct-a.pct);
   // hazardous ingredients for classification: alcohol part + denaturants + oil SDS section-3 components (upper bound, conservative)
   const ings=[];
-  if(eth!==null)ings.push({name:'Ethanol',cas:'64-17-5',max:eth,min:eth,hazard:A.hazards||'H225',m:1,src:'alc'});
+  if(eth!==null)ings.push({name:'Ethanol',cas:'64-17-5',max:eth,min:eth,hazard:/Flam/.test(A.hazards||'')?A.hazards:'Flam. Liq. 2, H225'+(((A.hazards||'').match(/H3\d\d/g))||[]).map(x=>'; '+x).join(''),m:1,src:'alc'});
   dens.forEach(d=>{if(d.prod)ings.push({name:d.name,cas:d.cas,max:d.prod,min:d.prod,hazard:d.hazard||'',m:1,src:'alc'})});
   (p.sds.components||[]).forEach(c=>{const up=upperPct(c.pct),lo=lowerPct(c.pct);if(up===null||oil===null)return;
     ings.push({name:c.name,cas:c.cas,max:up*oil/100,min:(lo||0)*oil/100,hazard:c.hazard||'',m:mFactor(c),src:'oil',raw:c.pct})});
@@ -933,9 +933,9 @@ async function bSds(D,p,lang){const s=state.settings,c=compute(p,s),k=c.cls,A=s.
   const env=k.envMark;D.TB(['','ADR/RID','IMDG','IATA'],[[E?'UN number':'UN-Nummer','UN 1266','UN 1266','UN 1266'],[E?'Proper shipping name':'Ordnungsgemäße Versandbezeichnung',E?'PERFUMERY PRODUCTS':'PARFÜMERIEERZEUGNISSE','PERFUMERY PRODUCTS','PERFUMERY PRODUCTS'],[E?'Transport hazard class':'Transportgefahrenklasse','3','3','3'],[E?'Packing group':'Verpackungsgruppe','II','II','II'],[E?'Environmental hazards':'Umweltgefahren',env?(E?'yes':'ja'):(E?'no':'nein'),env?'Marine pollutant':(E?'no':'nein'),env?(E?'yes':'ja'):(E?'no':'nein')]]);
   D.KV([[E?'Limited quantities (LQ)':'Begrenzte Mengen (LQ)',E?'ADR: 5 L per inner packaging':'ADR: 5 L je Innenverpackung'],[E?'Tunnel restriction code':'Tunnelbeschränkungscode','D/E']]);
   D.H1(E?'SECTION 15: Regulatory information':'ABSCHNITT 15: Rechtsvorschriften');
-  const wgk=[A.wgk,p.sds.wgk].map(x=>num(x)).filter(x=>x!==null);const wg=wgk.length?Math.max(...wgk):2;
-  D.KV(E?[['Water hazard class (DE, AwSV)',`WGK ${wg} (self-classification, conservative)`],['Storage class (DE, TRGS 510)','3'],['Seveso III Directive 2012/18/EU','Annex I, Part 1, P5c (flammable liquids)'],['VOC','approx. '+nf(c.eth,1,lang)+' %'],['Further regulations','Regulation (EC) No 1272/2008 (CLP), Regulation (EC) No 1907/2006 (REACH); national provisions on storage and workplace safety.'],['Chemical safety assessment','Not carried out for this mixture.']]
-   :[['Wassergefährdungsklasse (AwSV)',`WGK ${wg} (Selbsteinstufung, konservativ nach höchster Komponente)`],['Lagerklasse (TRGS 510)','3'],['Störfallverordnung','Anhang I, Nr. P5c (entzündbare Flüssigkeiten)'],['VOC','ca. '+nf(c.eth,1,lang)+' %'],['Sonstige Vorschriften','TRGS 510, TRGS 900, Verordnung (EG) Nr. 1272/2008, Verordnung (EG) Nr. 1907/2006'],['Stoffsicherheitsbeurteilung','Für dieses Gemisch nicht durchgeführt.']]);
+  const wgk=[A.wgk,p.sds.wgk].map(x=>num(x)).filter(x=>x!==null);const wH=c.cls.H;const wCalc=wH.includes('H410')||wH.includes('H400')?3:wH.includes('H411')?2:1;const wg=Math.max(wCalc,...wgk);
+  D.KV(E?[['Water hazard class (DE, AwSV)',`WGK ${wg} (self-classification derived from the CLP classification, AwSV Annex 1)`],['Storage class (DE, TRGS 510)','3'],['Seveso III Directive 2012/18/EU','Annex I, Part 1, P5c (flammable liquids)'],['VOC','approx. '+nf(c.eth,1,lang)+' %'],['Further regulations','Regulation (EC) No 1272/2008 (CLP), Regulation (EC) No 1907/2006 (REACH); national provisions on storage and workplace safety.'],['Chemical safety assessment','Not carried out for this mixture.']]
+   :[['Wassergefährdungsklasse (AwSV)',`WGK ${wg} (Selbsteinstufung, abgeleitet aus der CLP-Einstufung nach AwSV Anlage 1)`],['Lagerklasse (TRGS 510)','3'],['Störfallverordnung','Anhang I, Nr. P5c (entzündbare Flüssigkeiten)'],['VOC','ca. '+nf(c.eth,1,lang)+' %'],['Sonstige Vorschriften','TRGS 510, TRGS 900, Verordnung (EG) Nr. 1272/2008, Verordnung (EG) Nr. 1907/2006'],['Stoffsicherheitsbeurteilung','Für dieses Gemisch nicht durchgeführt.']]);
   D.H1(E?'SECTION 16: Other information':'ABSCHNITT 16: Sonstige Angaben');
   const allH=[...new Set([...k.H,...c.ings.flatMap(i=>hcodes(i.hazard))])].sort();
   D.P(E?'Full text of H statements (sections 2 and 3):':'Wortlaut der H-Sätze (Abschnitte 2 und 3):',{bold:1});allH.forEach(h=>D.P(`${h} ${hT(h,lang)}`,{size:8}));
