@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#141210">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>FH Manufaktur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Cormorant+Garamond:wght@600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+/* Layout: same as the showroom app — one working column, full pages with «رجوع» and ⌂, bottom bar on phones, dark side bar on desktop; GHS red only for hazard marks */
+:root{
+  --bg:#f5f2eb; --surface:#ffffff; --ink:#1a1714; --muted:#6b645a; --line:#dcd5c8;
+  --accent:#1a1714; --accent-ink:#f2dfa8; --gold:#b8912f; --gold-soft:#f3e9cf; --soft:#f1ebdc;
+  --hz:#c8102e; --ok:#1d6b3a; --ok-soft:#e3f1e7; --warn:#a4560a; --warn-soft:#fbf0d4; --bad:#a12c2c; --bad-soft:#fbe4e1;
+  --nav:#141210; --nav-ink:#cfc6b4; --nav-on:#2a251f;
+  --sans:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace; --brand:"Cormorant Garamond",Georgia,serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f0e0c; --surface:#1a1816; --ink:#ece6d8; --muted:#a39b8c; --line:#2f2b25;
+  --accent:#c9a24a; --accent-ink:#161310; --gold:#d4ad55; --gold-soft:#2b2518; --soft:#262219;
+  --hz:#ff6b7d; --ok:#63c487; --ok-soft:#17291d; --warn:#e2a04e; --warn-soft:#33270f; --bad:#ee8a8a; --bad-soft:#3a1b19;
+  --nav:#141210; --nav-ink:#cfc6b4; --nav-on:#2a251f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f0e0c; --surface:#1a1816; --ink:#ece6d8; --muted:#a39b8c; --line:#2f2b25;
+  --accent:#c9a24a; --accent-ink:#161310; --gold:#d4ad55; --gold-soft:#2b2518; --soft:#262219;
+  --hz:#ff6b7d; --ok:#63c487; --ok-soft:#17291d; --warn:#e2a04e; --warn-soft:#33270f; --bad:#ee8a8a; --bad-soft:#3a1b19;
+  --nav:#141210; --nav-ink:#cfc6b4; --nav-on:#2a251f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 110px;display:flex;flex-direction:column;gap:14px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-bottom:10px;border-bottom:2px solid var(--gold)}
+h1{margin:0;display:flex;flex-direction:column;line-height:1.25}
+.bn{font-family:var(--brand);font-size:24px;font-weight:700;letter-spacing:.18em;color:var(--gold);direction:ltr;text-align:start;line-height:1.1}
+.bn small{display:block;font-size:11px;letter-spacing:.42em;font-weight:600}
+.bs{font-size:13px;font-weight:500;color:var(--muted)}
+.shh{position:sticky;top:env(safe-area-inset-top,0px);z-index:3;background:var(--bg);padding:8px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+.shh b{flex:1;min-width:0;text-align:center;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bk{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.hm{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:20px;cursor:pointer}
+#view{display:flex;flex-direction:column;gap:12px;min-width:0}#delZone{align-self:flex-start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.home{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{display:flex;align-items:center;gap:10px;text-align:start;padding:12px;min-height:64px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit;width:100%}
+.tile .ic{width:36px;height:36px;border-radius:11px;background:var(--gold-soft);display:grid;place-items:center;flex:none}
+.tile .ic svg{width:19px;height:19px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tile .tt{min-width:0;flex:1;display:flex;flex-direction:column;gap:1px}
+.tile b{font-size:15.5px}.tile span{font-size:12.5px;color:var(--muted)}
+.tile.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.tile.primary span{color:var(--accent-ink);opacity:.8}
+.tile.primary .ic{background:rgba(242,223,168,.14)}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.kpi small{display:block;font-size:12px;color:var(--muted)}.kpi b{font-size:22px;font-variant-numeric:tabular-nums}
+.btn{font:inherit;font-size:15px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 16px;min-height:46px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:6px 12px;min-height:38px;font-size:13.5px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible,.tile:focus-visible,.bk:focus-visible,.hm:focus-visible,.nv:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;text-align:start;font:inherit;color:inherit;width:100%}
+.pcard b{font-size:15.5px;overflow-wrap:anywhere}.pcard small{color:var(--muted);font-size:12.5px;grid-column:1}
+.pcard .pill{grid-row:1/3;grid-column:2}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:10px;border:1px solid currentColor;width:fit-content;white-space:nowrap}
+.pill.ok{color:var(--ok)}.pill.warn{color:var(--warn)}.pill.bad{color:var(--bad)}
+h2{font-size:17px;margin:0;font-weight:700}
+h3{font-size:15px;margin:0;font-weight:700}
+.hint{color:var(--muted);font-size:13.5px;margin:0;max-width:72ch}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px 14px}
+label.f{display:grid;gap:4px;font-size:13px;color:var(--muted);font-weight:500}
+label.f span.req::after{content:" *";color:var(--gold)}
+input,select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%;min-width:0}
+input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:var(--gold)}
+.ltr{direction:ltr;text-align:left}.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.box{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.dc{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px;align-content:start;min-width:0;background:var(--surface)}
+.file{font-size:12.5px;color:var(--muted);word-break:break-all}.file a{color:var(--gold)}
+.drop{border:1.5px dashed var(--gold);border-radius:12px;padding:14px;text-align:center;color:var(--gold);font-size:14px;font-weight:600;cursor:pointer;position:relative;display:block;background:var(--gold-soft)}
+.drop input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;padding:0;border:0}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:start;vertical-align:middle}
+th{background:var(--soft);font-weight:700;font-size:12.5px;color:var(--muted);white-space:nowrap}
+td.n,th.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;direction:ltr;white-space:nowrap}
+tr.hl td{background:var(--gold-soft)}
+td input{padding:5px 7px;font-size:13px}
+.checks{display:grid;gap:6px}
+.chk{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:9px 11px;border-radius:10px;font-size:14px}
+.chk.ok{background:var(--ok-soft)}.chk.warn{background:var(--warn-soft)}.chk.bad{background:var(--bad-soft)}
+.chk i{font-style:normal;font-weight:700;font-family:var(--mono)}
+.chk.ok i{color:var(--ok)}.chk.warn i{color:var(--warn)}.chk.bad i{color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--surface)}
+.stat small{display:block;color:var(--muted);font-size:12px}
+.stat b{font-family:var(--mono);font-size:17px;font-weight:500;direction:ltr;display:inline-block}
+.ghsrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.ghsrow svg{width:64px;height:64px}
+.hzline{direction:ltr;text-align:left;font-size:14px}.hzline b{font-family:var(--mono);font-weight:600;color:var(--hz)}
+.why{font-size:12.5px;color:var(--muted);direction:ltr;text-align:left}
+.doclist{display:grid;gap:10px}
+.docrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface)}
+.docrow p{margin:0;font-size:13px;color:var(--muted)}
+.steps{display:grid;gap:10px}
+.step{border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;background:var(--surface)}
+.step.done{background:var(--ok-soft);border-color:transparent}
+.step h3{margin-bottom:4px}.step p,.step li{font-size:14px;margin:0}
+.step ul{margin:6px 0 0;padding-inline-start:18px;display:grid;gap:3px}
+.step .ltr{font-family:var(--mono);font-size:13px}
+.empty{padding:36px 16px;text-align:center;color:var(--muted);display:grid;gap:12px;justify-items:center}
+.toast{position:fixed;inset-inline:0;bottom:calc(84px + env(safe-area-inset-bottom,0px));margin:auto;width:fit-content;max-width:90vw;background:var(--nav);color:#f2dfa8;padding:10px 18px;border-radius:99px;font-size:14px;z-index:60}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bad-soft);padding:8px 12px;border-radius:10px;font-size:14px}
+details summary{cursor:pointer;font-weight:600}
+.busy{color:var(--gold);font-size:13px}
+.mark{font-size:12.5px;color:var(--muted)}
+/* app navigation: bottom bar on phones, dark side bar on desktop */
+#appnav{position:fixed;z-index:30;background:var(--surface);left:0;right:0;bottom:0;height:calc(64px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;box-shadow:0 -4px 16px rgba(0,0,0,.05)}
+.nvlogo{display:none}
+.nv{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:0;font:inherit;font-size:10.5px;color:var(--muted);cursor:pointer;padding:4px 0;position:relative;-webkit-tap-highlight-color:transparent}
+.nv svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nv.on{color:var(--ink);font-weight:700}.nv.on svg{stroke:var(--gold)}
+.nv .pl{width:54px;height:54px;border-radius:18px;background:var(--nav);display:grid;place-items:center;margin-top:-30px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.nv.plus svg{stroke:#c9a24a;width:26px;height:26px;stroke-width:2.2}
+@media (min-width:900px){
+ #appnav{top:0;bottom:0;right:0;left:auto;width:210px;height:auto;background:var(--nav);padding:22px 12px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;border:0;box-shadow:none}
+ .nvlogo{display:block;font-family:var(--brand);font-weight:700;letter-spacing:.16em;color:#c9a24a;font-size:15px;direction:ltr;margin:0 8px 18px;line-height:1.15;text-align:right}
+ .nvlogo small{display:block;font-size:7.5px;letter-spacing:.5em;opacity:.8}
+ .nv{flex-direction:row;justify-content:flex-start;gap:12px;font-size:14.5px;color:var(--nav-ink);padding:11px 14px;border-radius:12px;width:100%}
+ .nv svg{width:20px;height:20px}.nv.on{background:var(--nav-on);color:#fff}.nv.on svg{stroke:#c9a24a}
+ .nv .pl{width:auto;height:auto;background:none;margin:0;box-shadow:none;display:contents}
+ .nv.plus{order:99;margin-top:auto;background:#b08d3c;color:#141210;font-weight:700;justify-content:center}.nv.plus svg{stroke:#141210}
+ body{padding-right:210px}
+ .wrap{padding-bottom:40px}
+ .toast{bottom:24px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+
+<style>.login{max-width:420px;margin:8vh auto 0;display:grid;gap:14px;text-align:center}.lg-brand{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;letter-spacing:.14em;color:var(--gold)}.lg-brand small{display:block;font-size:12px;letter-spacing:.5em;color:var(--ink,#1a1714)}.login .f{text-align:right}.box,.tblwrap{min-width:0;max-width:100%}.tblwrap{overflow-x:auto}select{font:inherit;padding:10px;border-radius:10px;border:1px solid #d8d0c0;background:#fff}</style>
+<script src="config.js"></script>
+</head>
+<body>
+<nav id="appnav" dir="rtl" lang="ar" aria-label="التنقل">
+  <div class="nvlogo">FRAGRANCE HUB<small>GERMANY</small></div>
+  <button class="nv" id="nv-home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg><span>الرئيسية</span></button>
+  <button class="nv" id="nv-list" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v4l3 3v11H6V10l3-3z"/><path d="M6 14h12"/></svg><span>العطور</span></button>
+  <button class="nv plus" id="nv-new" type="button"><span class="pl"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span>عطر جديد</span></button>
+  <button class="nv" id="nv-guide" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7a3 3 0 013 3v12a2 2 0 00-2-2H4zM20 5h-5a3 3 0 00-3 3"/><path d="M20 5v13h-6"/></svg><span>الدليل</span></button>
+  <button class="nv" id="nv-set" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg><span>الإعدادات</span></button>
+</nav>
+<div class="wrap" dir="rtl" lang="ar">
+  <header class="top"><h1><span class="bn">FRAGRANCE HUB<small>GERMANY</small></span><span class="bs">Manufaktur · مركّزات العطور</span></h1></header>
+  <main id="view"><div class="empty"><h2>جارٍ التحميل…</h2><p class="hint">العطور المحفوظة تظهر هنا.</p></div></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ---------- FH Manufaktur: server connection, login, storage ---------- */
+const FH=(()=>{
+  const API=(window.FHM_CONFIG||{}).api||'';
+  const ls={get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}},set:(k,v)=>{try{v?localStorage.setItem(k,v):localStorage.removeItem(k)}catch(e){}}};
+  let PIN=ls.get('fhm_pin');const me={user:'',admin:false};
+  const ERR={PIN:'رمز الدخول غير صحيح.',NUR_INHABER:'هذه العملية للمالك فقط.',AI_FEHLT:'القراءة الآلية غير مفعّلة بعد — أخبر المسؤول.',SHOP_FEHLT:'الربط مع المتجر غير مفعّل بعد — أخبر المسؤول.','Zu viele Versuche':'محاولات خاطئة كثيرة — انتظر 10 دقائق.'};
+  const errText=m=>ERR[m]||m;
+  async function call(action,args,tries=3){if(!API)throw{code:'server_unavailable',message:'عنوان الخادم غير مضبوط.'};let last;
+    for(let i=0;i<tries;i++){try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({pin:PIN,action,args:args||{}}),redirect:'follow'});
+        if(!r.ok)throw{net:1,code:'server_unavailable',message:'الخادم لا يستجيب ('+r.status+')'};const j=await r.json();
+        if(j.err){if(j.err==='PIN'&&action!=='check'){logout();}throw{code:'tool_error',raw:j.err,message:errText(j.err)}}return j.val}
+      catch(e){last=e.code?e:{net:1,code:'server_unavailable',message:'لا اتصال بالخادم — تحقق من الإنترنت.'};if(!last.net||i===tries-1)throw last;await new Promise(r=>setTimeout(r,1500*(i+1)))}}throw last}
+  function logout(){ls.set('fhm_pin','');PIN='';location.reload()}
+  async function b64(blob){const u=new Uint8Array(await blob.arrayBuffer());let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+  /* storage with live refresh */
+  const subs={},cache={};
+  async function pull(col){try{const rows=await call('list',{col});const sig=JSON.stringify(rows.map(r=>[r.id,r.updated]));if(cache[col]&&cache[col].sig===sig&&cache[col].ok)return;cache[col]={sig,rows,ok:1};(subs[col]||[]).forEach(f=>f(rows))}catch(e){(subs[col]||[]).forEach(f=>f(null,e))}}
+  function sub(col,fn){(subs[col]=subs[col]||[]).push(fn);if(cache[col])fn(cache[col].rows);else pull(col)}
+  setInterval(()=>{if(document.visibilityState==='visible'&&PIN)Object.keys(subs).forEach(pull)},30000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&PIN)Object.keys(subs).forEach(pull)});
+  const snap=rows=>({docs:rows.map(r=>({id:r.id,data:()=>JSON.parse(JSON.stringify(r.data))}))});
+  const local=(col,id,data)=>{const c=cache[col]||(cache[col]={sig:'',rows:[],ok:0});const rows=c.rows.filter(r=>r.id!==id);if(data!==null)rows.push({id,data:JSON.parse(JSON.stringify(data)),updated:Date.now()});c.rows=rows;c.ok=0;(subs[col]||[]).forEach(f=>f(rows))};
+  const after=col=>{if(cache[col])cache[col].ok=0;clearTimeout(after['t'+col]);after['t'+col]=setTimeout(()=>pull(col),1500)};
+  const db={
+    collection:col=>({
+      onSnapshot:(cb,err)=>sub(col,(rows,e)=>{if(rows)cb(snap(rows));else if(err)err({code:e&&e.message||'offline'})}),
+      add:async data=>{const r=await call('add',{col,data});local(col,r.id,data);after(col);return{id:r.id}},
+      doc:id=>({set:async data=>{await call('set',{col,id,data});local(col,id,data);after(col)},delete:async()=>{await call('del',{col,id});local(col,id,null);after(col)}})}),
+    doc:path=>{const [col,id]=path.split('/');return{
+      onSnapshot:cb=>sub(col,rows=>{if(!rows)return;const r=rows.find(x=>x.id===id);cb({exists:!!r,data:()=>r?JSON.parse(JSON.stringify(r.data)):undefined})}),
+      set:async data=>{await call('set',{col,id,data});local(col,id,data);after(col)}}}};
+  const assets={upload:async file=>{const r=await call('upload',{name:file.name||'Datei',type:file.type||'application/octet-stream',data:await b64(file)},1);return{id:r.id,url:r.url}}};
+  const sample={limits:async()=>({images:{maxCount:6,maxInputBytes:3500000}}),
+    json:async(prompt,o={})=>{const images=[];for(const im of (o.images||[]))images.push({type:im.type||'image/jpeg',data:await b64(im)});return call('ai',{prompt,images},1)}};
+  const downloads={save:async({filename,data})=>{const u=URL.createObjectURL(data);const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}};
+  const MAP={'Google Drive':{search_files:'drive_search',download_file_content:'drive_download',create_file:'drive_create',share_file:'drive_share',update_file:'drive_rename'},'Google Sheets':{get_values:'sheet_get',append_values:'sheet_append'},'Shopify':{graphql_query:'shopify',graphql_mutation:'shopify'}};
+  const mcp={listTools:async()=>({fileArgs:false}),callTool:async(server,tool,args)=>{const a=(MAP[server]||{})[tool];if(!a)throw{code:'tool_error',message:'غير متاح'};return{payload:await call(a,args,tool==='download_file_content'||tool==='get_values'||tool==='search_files'||tool==='graphql_query'?3:1)}}};
+  /* login */
+  function loginView(msg){return `<div class="card login"><div class="lg-brand">FRAGRANCE HUB<small>MANUFAKTUR</small></div>
+    <p class="hint">مركّزات العطور · الدفعات · المستندات</p>
+    <label class="f" for="lgPin"><span>رمز الدخول</span><input id="lgPin" type="password" dir="ltr" autocomplete="current-password" autocapitalize="off" spellcheck="false"></label>
+    ${msg?`<div class="chk bad"><i>✕</i><span>${msg}</span></div>`:''}<button class="btn primary" type="button" id="lgGo">دخول</button></div>`}
+  function login(){return new Promise(async done=>{const nav=document.getElementById('appnav');
+    const show=msg=>{nav.style.display='none';const v=document.getElementById('view');v.innerHTML=loginView(msg);const i=document.getElementById('lgPin');i.focus();
+      const go=async()=>{const p=i.value.trim();if(!p)return;PIN=p;document.getElementById('lgGo').disabled=true;try{Object.assign(me,await call('check',{},2));ls.set('fhm_pin',p);nav.style.display='';done(true)}catch(e){PIN='';show(e.message)}};
+      document.getElementById('lgGo').onclick=go;i.onkeydown=e=>{if(e.key==='Enter')go()}};
+    if(PIN){try{Object.assign(me,await call('check',{},3));done(true);return}catch(e){if(e.raw==='PIN'){ls.set('fhm_pin','');PIN=''}else{show(e.message);return}}}
+    show('')})}
+  return{call,db,assets,sample,downloads,mcp,login,logout,me}})();
+
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{if(v===null||v===undefined||v==='')return null;const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:null};
+const fmt=(v,d=2)=>v===null||v===undefined||!isFinite(v)?'—':Number(v).toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtSig=v=>{if(v===null||v===undefined||!isFinite(v))return '—';if(v===0)return '0';const d=v>=1?3:v>=0.01?4:v>=0.0001?6:8;return Number(v).toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d})};
+const today=()=>new Date().toISOString().slice(0,10);
+const deDate=d=>{const x=d?new Date(d):new Date();return x.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})};
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2800)}
+
+/* ---------- defaults ---------- */
+const DEFAULT_SETTINGS={company:'Fragrance Hub Germany',street:'Am Alten Kirchplatz 10',city:'45665 Recklinghausen',country:'Deutschland',email:'info@fragranceshub.de',phone:'+49 2361 4878835',vat:'DE346107492',
+  emergency:'Giftnotruf Berlin (24 h): +49 30 30686 700',sdsAuthor:'Fragrance Hub Germany – Produktsicherheit',labelW:105,labelH:148,shelfLife:24,folderEn:'1X95Cg0hyiQwFWdtUpqgP-9Ah1VDwsben',folderDe:'1fjKh3ShHocsb-SuujpwU7zyureJgopGx',lastOperator:'',
+  alcohol:{name:'Alcohol denat. 96 % vol',ethanolWW:94.933,flash:13,hazards:'H225',wgk:'1',fileId:'',fileName:'',fileUrl:'',checked:false,lastLot:'',
+    denats:[{name:'tert-Butanol',inci:'T-BUTYL ALCOHOL',cas:'75-65-0',pct:0.103,hazard:'Flam. Liq. 2 H225; Eye Irrit. 2 H319; STOT SE 3 H336; Acute Tox. 4 H332'},{name:'Denatoniumbenzoat',inci:'DENATONIUM BENZOATE',cas:'3734-33-6',pct:0.001,hazard:'Acute Tox. 4 H302; Skin Irrit. 2 H315; Eye Dam. 1 H318; Acute Tox. 4 H332'}]},
+  guide:{}};
+const IFRA_CATS=['1','2','3','4','5A','5B','5C','5D','6','7A','7B','8','9','10A','10B','11A','11B','12'];
+const BANNED={'31906-04-4':'HICC (Lyral)','51414-25-6':'HICC (Lyral)','526-37-4':'Atranol','57074-21-2':'Chloroatranol','80-54-6':'Butylphenyl Methylpropional (Lilial)'};
+
+const CODES_SHEET='1qETeGWZcHDYu7vdP0PxMVHgbyrUk9vv_TwQSL56fAk4';
+const state={mcp:null,codes:null,codesErr:'',pickQ:'',drive:{},settings:JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),products:[],batches:[],cur:null,tab:1,view:'product',db:null,assets:null,sample:null,downloads:null,pending:{},busy:{}};
+
+function blankProduct(){return{name:'',code:'',oilName:'',oilCode:'',oilPct:'25',oilUfi:'',factoryCode:'',volumeL:'1',density:'',appearance:'klare Flüssigkeit',odor:'',ufi:'',
+  sdsVersion:'1.0',sdsApproved:false,approvedBy:'',sdsDate:0,oilBatch:'',odorEn:'',appearanceEn:'clear liquid',price:'',docCode:'',docs:{},shopify:{},
+  ifra:{amendment:'',date:'',cats:{},checked:false,fileId:'',fileName:'',fileUrl:''},
+  allergen:{date:'',reg2023:false,items:[],checked:false,fileId:'',fileName:'',fileUrl:''},
+  sds:{date:'',flash:'',density:'',appearance:'',hazards:'',wgk:'',components:[],checked:false,fileId:'',fileName:'',fileUrl:''},
+  updatedAt:Date.now()}}
+function merge(base,o){const r=Array.isArray(base)?[...base]:{...base};for(const k in o){if(o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])&&base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))r[k]=merge(base[k],o[k]);else r[k]=o[k]}return r}
+const curP=()=>state.products.find(p=>p.id===state.cur);
+
+/* ---------- hazard texts (DE) ---------- */
+const HT={H225:'Flüssigkeit und Dampf leicht entzündbar.',H226:'Flüssigkeit und Dampf entzündbar.',H302:'Gesundheitsschädlich bei Verschlucken.',H304:'Kann bei Verschlucken und Eindringen in die Atemwege tödlich sein.',
+ H315:'Verursacht Hautreizungen.',H317:'Kann allergische Hautreaktionen verursachen.',H318:'Verursacht schwere Augenschäden.',H319:'Verursacht schwere Augenreizung.',H332:'Gesundheitsschädlich bei Einatmen.',H336:'Kann Schläfrigkeit und Benommenheit verursachen.',
+ H341:'Kann vermutlich genetische Defekte verursachen.',H351:'Kann vermutlich Krebs erzeugen.',H360:'Kann die Fruchtbarkeit beeinträchtigen oder das Kind im Mutterleib schädigen.',H361:'Kann vermutlich die Fruchtbarkeit beeinträchtigen oder das Kind im Mutterleib schädigen.',
+ H400:'Sehr giftig für Wasserorganismen.',H410:'Sehr giftig für Wasserorganismen mit langfristiger Wirkung.',H411:'Giftig für Wasserorganismen, mit langfristiger Wirkung.',H412:'Schädlich für Wasserorganismen, mit langfristiger Wirkung.',H413:'Kann für Wasserorganismen schädlich sein, mit langfristiger Wirkung.'};
+const HCLASS={H225:'Flam. Liq. 2',H226:'Flam. Liq. 3',H304:'Asp. Tox. 1',H315:'Skin Irrit. 2',H317:'Skin Sens. 1',H318:'Eye Dam. 1',H319:'Eye Irrit. 2',H341:'Muta. 2',H351:'Carc. 2',H360:'Repr. 1B',H361:'Repr. 2',H400:'Aquatic Acute 1',H410:'Aquatic Chronic 1',H411:'Aquatic Chronic 2',H412:'Aquatic Chronic 3',H413:'Aquatic Chronic 4'};
+const PT={'P201':'Vor Gebrauch besondere Anweisungen einholen.','P210':'Von Hitze, heißen Oberflächen, Funken, offenen Flammen sowie anderen Zündquellenarten fernhalten. Nicht rauchen.','P233':'Behälter dicht verschlossen halten.',
+ 'P261':'Einatmen von Dampf vermeiden.','P272':'Kontaminierte Arbeitskleidung nicht außerhalb des Arbeitsplatzes tragen.','P273':'Freisetzung in die Umwelt vermeiden.','P280':'Schutzhandschuhe/Augenschutz tragen.',
+ 'P301+P310':'BEI VERSCHLUCKEN: Sofort GIFTINFORMATIONSZENTRUM/Arzt anrufen.','P331':'KEIN Erbrechen herbeiführen.','P302+P352':'BEI BERÜHRUNG MIT DER HAUT: Mit viel Wasser waschen.',
+ 'P303+P361+P353':'BEI BERÜHRUNG MIT DER HAUT (oder dem Haar): Alle kontaminierten Kleidungsstücke sofort ausziehen. Haut mit Wasser abwaschen oder duschen.',
+ 'P305+P351+P338':'BEI KONTAKT MIT DEN AUGEN: Einige Minuten lang behutsam mit Wasser spülen. Eventuell vorhandene Kontaktlinsen nach Möglichkeit entfernen. Weiter spülen.',
+ 'P308+P313':'BEI Exposition oder falls betroffen: Ärztlichen Rat einholen/ärztliche Hilfe hinzuziehen.','P333+P313':'Bei Hautreizung oder -ausschlag: Ärztlichen Rat einholen/ärztliche Hilfe hinzuziehen.',
+ 'P337+P313':'Bei anhaltender Augenreizung: Ärztlichen Rat einholen/ärztliche Hilfe hinzuziehen.','P370+P378':'Bei Brand: Kohlendioxid, Löschpulver oder alkoholbeständigen Schaum zum Löschen verwenden.',
+ 'P391':'Verschüttete Mengen aufnehmen.','P403+P235':'An einem gut belüfteten Ort aufbewahren. Kühl halten.','P501':'Inhalt/Behälter einer zugelassenen Entsorgung zuführen.'};
+const PICTO_NAME={GHS02:'Flamme (GHS02)',GHS05:'Ätzwirkung (GHS05)',GHS07:'Ausrufezeichen (GHS07)',GHS08:'Gesundheitsgefahr (GHS08)',GHS09:'Umwelt (GHS09)'};
+
+/* ---------- GHS pictograms (SVG) ---------- */
+const SYM={
+ GHS02:'<path d="M50 20c7 12 16 19 13 34 6-4 7-11 5-16 8 9 9 23 1 33H31c-8-10-6-21 2-29 0 8 4 12 8 12-6-13 2-24 9-34z" fill="#000"/><rect x="29" y="76" width="42" height="5" fill="#000"/>',
+ GHS05:'<path d="M28 26h10l-4 18h-4zM56 26h10l-4 18h-4z" fill="#000"/><circle cx="32" cy="52" r="3" fill="#000"/><circle cx="60" cy="52" r="3" fill="#000"/><rect x="22" y="60" width="22" height="6" fill="#000"/><path d="M52 62h26v14H52z" fill="#000"/><rect x="24" y="76" width="54" height="5" fill="#000"/>',
+ GHS07:'<rect x="45" y="24" width="10" height="34" rx="3" fill="#000"/><circle cx="50" cy="69" r="6" fill="#000"/>',
+ GHS08:'<circle cx="50" cy="27" r="8" fill="#000"/><path d="M33 80V50c0-9 7-14 17-14s17 5 17 14v30z" fill="#000"/><path d="M50 46l3 7 7-2-4 6 6 4-7 1 1 7-6-4-6 4 1-7-7-1 6-4-4-6 7 2z" fill="#fff"/>',
+ GHS09:'<path d="M30 58V34M30 40l-8-6M30 46l8-7M30 50l-7 3" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M48 66c6-8 18-8 24 0-6 8-18 8-24 0zM72 66l7-6v12z" fill="#000"/><path d="M53 63l3 3m0-3l-3 3" stroke="#fff" stroke-width="1.5"/><rect x="20" y="76" width="60" height="4" fill="#000"/>'};
+function ghsSvg(code){return `<svg viewBox="0 0 100 100" role="img" aria-label="${esc(PICTO_NAME[code]||code)}"><rect x="15" y="15" width="70" height="70" transform="rotate(45 50 50)" fill="#fff" stroke="#e60012" stroke-width="7"/>${SYM[code]||''}</svg>`}
+const pictoPng={};
+async function pictoDataUrl(code){if(pictoPng[code])return pictoPng[code];
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="400" height="400"><rect x="15" y="15" width="70" height="70" transform="rotate(45 50 50)" fill="#fff" stroke="#e60012" stroke-width="7"/>${SYM[code]||''}</svg>`;
+  const img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);await img.decode();
+  const cv=document.createElement('canvas');cv.width=400;cv.height=400;cv.getContext('2d').drawImage(img,0,0,400,400);return pictoPng[code]=cv.toDataURL('image/png')}
+
+/* ---------- parsing helpers ---------- */
+function upperPct(s){if(s===null||s===undefined)return null;const n=String(s).replace(/,/g,'.').match(/\d+(?:\.\d+)?/g);if(!n)return null;return Math.max(...n.map(Number))}
+function lowerPct(s){const n=String(s??'').replace(/,/g,'.').match(/\d+(?:\.\d+)?/g);if(!n)return null;return n.length>1?Math.min(...n.map(Number)):0}
+function hcodes(s){return [...new Set((String(s||'').toUpperCase().match(/H\d{3}/g)||[]))]}
+function mFactor(c){const m=num(c.m);if(m)return m;const x=String(c.hazard||'').match(/M\s*[-=]?\s*(?:Faktor|factor)?\s*[:=(]?\s*(\d+)/i);return x?+x[1]:1}
+function sensCat(h){return /Skin\s*Sens\.?\s*1A/i.test(h||'')?'1A':'1'}
+
+/* ---------- calculations ---------- */
+function compute(p,s){
+  const A=s.alcohol||{};const oil=num(p.oilPct);const alcShare=oil!==null?100-oil:null;
+  const ethWW=num(A.ethanolWW);const eth=alcShare!==null&&ethWW!==null?alcShare*ethWW/100:null;
+  const dens=(A.denats||[]).filter(d=>d&&(d.name||d.inci)).map(d=>({...d,prod:alcShare!==null?alcShare*(num(d.pct)||0)/100:null}));
+  const denSum=dens.reduce((a,d)=>a+(d.prod||0),0);
+  const water=alcShare!==null&&eth!==null?Math.max(0,alcShare-eth-denSum):null;
+  const comp=[];
+  if(eth!==null)comp.push({name:'Ethanol',inci:'ALCOHOL DENAT.',cas:'64-17-5',pct:eth,hazard:A.hazards||'H225'});
+  if(oil!==null)comp.push({name:'Parfümöl '+(p.oilName||''),inci:'PARFUM',cas:'—',pct:oil,hazard:p.sds.hazards||''});
+  if(water)comp.push({name:'Wasser',inci:'AQUA',cas:'7732-18-5',pct:water,hazard:''});
+  dens.forEach(d=>{if(d.prod)comp.push({name:d.name||d.inci,inci:(d.inci||d.name||'').toUpperCase(),cas:d.cas||'',pct:d.prod,hazard:d.hazard||''})});
+  comp.sort((a,b)=>b.pct-a.pct);
+  // hazardous ingredients for classification: alcohol part + denaturants + oil SDS section-3 components (upper bound, conservative)
+  const ings=[];
+  if(eth!==null)ings.push({name:'Ethanol',cas:'64-17-5',max:eth,min:eth,hazard:A.hazards||'H225',m:1,src:'alc'});
+  dens.forEach(d=>{if(d.prod)ings.push({name:d.name,cas:d.cas,max:d.prod,min:d.prod,hazard:d.hazard||'',m:1,src:'alc'})});
+  (p.sds.components||[]).forEach(c=>{const up=upperPct(c.pct),lo=lowerPct(c.pct);if(up===null||oil===null)return;
+    ings.push({name:c.name,cas:c.cas,max:up*oil/100,min:(lo||0)*oil/100,hazard:c.hazard||'',m:mFactor(c),src:'oil',raw:c.pct})});
+  const cls=classify(ings,alcShare,p);
+  const allergens=(p.allergen.items||[]).map(a=>{const pin=num(a.pct);return{...a,pin,prod:pin!==null&&oil!==null?pin*oil/100:null,banned:BANNED[(a.cas||'').trim()]||null}});
+  const ifraRows=IFRA_CATS.map(k=>{const raw=p.ifra.cats?p.ifra.cats[k]:undefined;const lim=num(raw);const noRes=raw!==undefined&&raw!==null&&raw!==''&&lim===null&&/no|keine|unlim|n\.?r/i.test(String(raw));
+    const mix=lim!==null&&oil?Math.min(100,lim/oil*100):(noRes?100:null);return{k,raw,lim,noRes,mix}});
+  const cat4=ifraRows.find(r=>r.k==='4');
+  const vol=num(p.volumeL)||1;const dn=num(p.density)||estDensity(p,s);const massKg=dn?vol*dn:null;
+  return{oil,alcShare,eth,dens,water,comp,ings,cls,allergens,ifraRows,cat4,density:dn,densityEst:!num(p.density),massKg}
+}
+function estDensity(p,s){const oil=num(p.oilPct);const od=num(p.sds.density)||0.98;if(oil===null)return null;const ad=0.81;return 1/(oil/100/od+(1-oil/100)/ad)}
+
+function classify(ings,alcShare,p){
+  const H=new Set(),why=[],add=(h,t)=>{H.add(h);why.push({h,t})};
+  const sum=(re,f=x=>x.max)=>ings.filter(i=>re.test(i.hazard)).reduce((a,i)=>a+f(i),0);
+  const list=re=>ings.filter(i=>re.test(i.hazard));
+  // flammability: ethanol-based mixture
+  if(alcShare!==null&&alcShare>=20)add('H225',`Ethanolanteil ${fmt(alcShare,1)} % – Flammpunkt < 23 °C (Ethanol ca. 13 °C). Flam. Liq. 2. Flammpunkt durch Messung bestätigen.`);
+  // aspiration
+  const asp=sum(/H304/);if(asp>=10)add('H304',`Summe Asp. Tox. 1 = ${fmt(asp,2)} % (>= 10 %, niedrige Viskosität).`);
+  // skin sensitisation
+  const sens=list(/H317/);const trig=sens.filter(i=>sensCat(i.hazard)==='1A'?i.max>=0.1:i.max>=1);
+  if(trig.length)add('H317',`Hautsensibilisierende Stoffe über Grenzwert: ${trig.map(i=>`${i.name} (${fmtSig(i.max)} %)`).join(', ')}.`);
+  const euh=trig.length?[]:sens.filter(i=>sensCat(i.hazard)==='1A'?i.max>=0.01:i.max>=0.1);
+  // eye
+  const ed=sum(/H318/);if(ed>=3)add('H318',`Summe Eye Dam. 1 = ${fmt(ed,2)} % (>= 3 %).`);
+  else{const ei=sum(/H319/)+10*ed;if(ei>=10)add('H319',`Summe Eye Irrit. 2 + 10 × Eye Dam. 1 = ${fmt(ei,2)} % (>= 10 %).`)}
+  // skin irritation
+  const si=sum(/H315/);if(si>=10)add('H315',`Summe Skin Irrit. 2 = ${fmt(si,2)} % (>= 10 %).`);
+  // CMR
+  list(/H360/).forEach(i=>{if(i.max>=0.3)add('H360',`${i.name} ${fmtSig(i.max)} % (Repr. 1B, >= 0,3 %).`)});
+  const r2=list(/H361/).filter(i=>i.max>=3);if(r2.length)add('H361',`Repr. 2 >= 3 %: ${r2.map(i=>i.name).join(', ')}.`);
+  const r2low=list(/H361/).filter(i=>i.max>=0.3&&i.max<3);
+  list(/H351/).forEach(i=>{if(i.max>=1)add('H351',`${i.name} ${fmtSig(i.max)} % (Carc. 2, >= 1 %).`)});
+  list(/H341/).forEach(i=>{if(i.max>=1)add('H341',`${i.name} ${fmtSig(i.max)} % (Muta. 2, >= 1 %).`)});
+  // aquatic (summation with M-factors)
+  const c1=ings.filter(i=>/H410/.test(i.hazard)).reduce((a,i)=>a+i.max*i.m,0);
+  const c2=sum(/H411/),c3=sum(/H412/),c4=sum(/H413/),a1=ings.filter(i=>/H400/.test(i.hazard)).reduce((a,i)=>a+i.max*i.m,0);
+  if(c1>=25)add('H410',`Σ Chronic 1 × M = ${fmt(c1,2)} % (>= 25 %).`);
+  else if(10*c1+c2>=25)add('H411',`Σ 10 × Chronic 1 × M + Chronic 2 = ${fmt(10*c1+c2,2)} % (>= 25 %).`);
+  else if(100*c1+10*c2+c3>=25)add('H412',`Σ 100 × Chronic 1 × M + 10 × Chronic 2 + Chronic 3 = ${fmt(100*c1+10*c2+c3,2)} % (>= 25 %).`);
+  else if(c1+c2+c3+c4>=25)add('H413',`Σ Chronic 1–4 = ${fmt(c1+c2+c3+c4,2)} % (>= 25 %).`);
+  if(a1>=25&&!H.has('H410'))add('H400',`Σ Acute 1 × M = ${fmt(a1,2)} % (>= 25 %).`);
+  // pictograms / signal word
+  const pic=new Set();if(H.has('H225')||H.has('H226'))pic.add('GHS02');if(H.has('H318'))pic.add('GHS05');
+  if(['H304','H360','H361','H351','H341'].some(h=>H.has(h)))pic.add('GHS08');
+  if(['H317','H315','H319'].some(h=>H.has(h))&&!(pic.has('GHS05')&&!H.has('H317')))pic.add('GHS07');
+  if(['H400','H410','H411'].some(h=>H.has(h)))pic.add('GHS09');
+  const danger=['H225','H304','H318','H360'].some(h=>H.has(h));const signal=H.size?(danger?'Gefahr':'Achtung'):'';
+  // precautionary statements, priority order (label takes the first 6)
+  const P=[];const ap=c=>{if(!P.includes(c))P.push(c)};
+  if(H.has('H304'))ap('P301+P310');if(H.has('H225'))ap('P210');if(H.size)ap('P280');if(H.has('H304'))ap('P331');
+  if(H.has('H319'))ap('P305+P351+P338');if(H.has('H318'))ap('P305+P351+P338');if(H.has('H317'))ap('P333+P313');
+  if(H.has('H225'))ap('P303+P361+P353');if(H.has('H360')||H.has('H361'))ap('P308+P313');if(H.has('H410')||H.has('H411'))ap('P273');
+  if(H.has('H225'))ap('P403+P235');if(H.size)ap('P501');
+  if(H.has('H317')){ap('P261');ap('P272');ap('P302+P352')}if(H.has('H225')){ap('P233');ap('P370+P378')}if(H.has('H319'))ap('P337+P313');if(H.has('H410')||H.has('H411'))ap('P391');if(H.has('H361')||H.has('H360'))ap('P201');
+  const order=['H225','H226','H304','H315','H317','H318','H319','H341','H351','H360','H361','H400','H410','H411','H412','H413'];
+  const hl=order.filter(h=>H.has(h));const labelH=hl.filter(h=>!(h==='H400'&&H.has('H410')));
+  return{H:hl,labelH,why,pic:['GHS02','GHS05','GHS07','GHS08','GHS09'].filter(x=>pic.has(x)),signal,P,labelP:P.slice(0,6),sensNames:trig.map(i=>i.name),euh208:euh.map(i=>i.name),r2low,
+    envMark:H.has('H410')||H.has('H411')}
+}
+
+function checks(p,s,c){
+  const L=[];const add=(lvl,t)=>L.push({lvl,t});const A=s.alcohol||{};
+  if(c.oil===null||c.oil<=0||c.oil>=100)add('bad','أدخل نسبة الزيت في الخليط (% وزن/وزن).');
+  if(!A.fileId)add('warn','SDS الكحول غير مرفوعة في «الشركة والكحول».');
+  if(num(A.ethanolWW)===null)add('bad','نسبة الإيثانول في الكحول غير مدخلة («الشركة والكحول»).');
+  if(!p.sds.fileId&&!(p.sds.components||[]).length)add('bad','SDS الزيت غير مرفوعة — التصنيف لا يمكن حسابه.');
+  else if(!(p.sds.components||[]).length)add('bad','جدول المكونات الخطرة (القسم 3) من SDS الزيت فارغ.');
+  if(!p.ifra.fileId&&!Object.keys(p.ifra.cats||{}).length)add('bad','شهادة IFRA للزيت غير مرفوعة.');
+  else if(!c.cat4||c.cat4.lim===null)add('warn','حد الفئة 4 من شهادة IFRA غير مقروء.');
+  else if(c.cat4.mix<100)add('warn',`الزيت ${fmt(c.oil,1)} % أعلى من حد IFRA للفئة 4 (${fmt(c.cat4.lim,2)} %): الزبون يستطيع استعمال الخليط حتى ${fmt(c.cat4.mix,1)} % فقط في العطر النهائي.`);
+  else add('ok',`الخليط يصلح كعطر جاهز (فئة 4) بنسبة 100 % — الزيت ${fmt(c.oil,1)} % ≤ حد IFRA ${fmt(c.cat4.lim,2)} %.`);
+  const am=num(p.ifra.amendment);if(am!==null&&am<51)add('warn',`شهادة IFRA حسب التعديل ${am}. اطلب شهادة حسب التعديل 51 أو أحدث.`);
+  if(!(p.allergen.items||[]).length)add('bad','إعلان مسببات الحساسية غير مرفوع.');else if(!p.allergen.reg2023)add('warn','إعلان الحساسية لا يذكر القائمة الموسعة 2023/1545.');
+  const ban=[...c.allergens.filter(a=>a.banned&&(a.prod===null||a.prod>0)).map(a=>a.banned),...(p.sds.components||[]).map(x=>BANNED[(x.cas||'').trim()]).filter(Boolean)];
+  [...new Set(ban)].forEach(b=>add('bad',`مادة ممنوعة في الملحق II: ${b}.`));
+  if(c.cls.r2low.length)add('warn',`مواد Repr. 2 بين 0,3 و 3 %: ${c.cls.r2low.map(i=>i.name).join(', ')} — تُذكر في القسم 3 من SDS، ولا تغيّر التصنيف.`);
+  if(!p.ufi)add('warn','رقم UFI غير مدخل — مطلوب على الملصق بعد التسجيل في بوابة ECHA (انظر الدليل).');
+  if(!num(p.density))add('warn',`الكثافة مقدّرة (${fmt(c.density,3)} g/ml). قِسها بعد أول دفعة.`);
+  const un=['ifra','allergen','sds'].filter(k=>(p[k].fileId||((k==='sds'?p.sds.components:k==='allergen'?p.allergen.items:Object.keys(p.ifra.cats||{}))||[]).length)&&!p[k].checked).length;
+  if(un)add('warn',`${un} شهادات لم تؤكد مراجعتها مقابل الأصل.`);
+  if(!p.sdsApproved)add('warn','SDS الخليط لم يراجعها شخص مختص بعد — تُطبع بعلامة «Entwurf».');
+  if(!p.name)add('bad','أدخل اسم المنتج التجاري.');
+  return L}
+function status(L){if(L.some(x=>x.lvl==='bad'))return{c:'bad',t:'ناقص'};if(L.some(x=>x.lvl==='warn'))return{c:'warn',t:'يحتاج مراجعة'};return{c:'ok',t:'جاهز'}}
+
+/* ---------- persistence ---------- */
+function save(p){if(!state.db)return;clearTimeout(state.pending[p.id]);state.pending[p.id]=setTimeout(async()=>{
+  const body=JSON.parse(JSON.stringify(p));delete body.id;body.updatedAt=Date.now();
+  try{await state.db.collection('products').doc(p.id).set(body)}catch(e){toast('تعذر الحفظ: '+(e.message||e.code))}finally{delete state.pending[p.id]}},700)}
+let sT;function saveSettings(){if(!state.db)return;clearTimeout(sT);sT=setTimeout(async()=>{try{await state.db.doc('config/settings').set(JSON.parse(JSON.stringify(state.settings)))}catch(e){toast('تعذر حفظ الإعدادات')}},600)}
+
+/* ---------- navigation (app style: full pages, «رجوع» step by step, ⌂ home) ---------- */
+const ICON={"list": "<path d=\"M9 3h6v4l3 3v11H6V10l3-3z\"/><path d=\"M6 14h12\"/>", "new": "<path d=\"M12 5v14M5 12h14\"/>", "guide": "<path d=\"M4 5h7a3 3 0 013 3v12a2 2 0 00-2-2H4zM20 5h-5a3 3 0 00-3 3\"/><path d=\"M20 5v13h-6\"/>", "set": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1\"/>", "data": "<path d=\"M6 3h9l4 4v14H6z\"/><path d=\"M15 3v4h4M9 12h7M9 16h5\"/>", "certs": "<path d=\"M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z\"/><path d=\"M9 12l2 2 4-4\"/>", "calc": "<path d=\"M12 3l9 16H3z\"/><path d=\"M12 10v4M12 17h.01\"/>", "docs": "<path d=\"M8 3h8l4 4v14H8z\"/><path d=\"M4 7v14h12\"/><path d=\"M12 12h5M12 16h5\"/>", "batch": "<path d=\"M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3\"/><path d=\"M7 15h10\"/>"};
+const ic=k=>`<span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg></span>`;
+const stack=[{v:'home'}];const view=()=>stack[stack.length-1];
+function go(v,o={}){stack.push({v,...o});window.scrollTo(0,0);render()}
+function back(){if(stack.length>1)stack.pop();window.scrollTo(0,0);render()}
+function home(){stack.length=1;window.scrollTo(0,0);render()}
+function navTo(v){stack.length=1;if(v!=='home')stack.push({v});window.scrollTo(0,0);render()}
+const SECT={data:'بيانات العطر',certs:'شهادات الزيت',calc:'التصنيف والحساب',docs:'المستندات',batch:'الدفعات'};
+function bar(t){return `<div class="shh"><button class="bk" type="button" id="goBack" aria-label="رجوع">→ رجوع</button><b>${esc(t)}</b><button class="hm" type="button" id="goHome" aria-label="الرئيسية" title="الرئيسية">⌂</button></div>`}
+function renderList(){const v=view().v;if(v==='list'||v==='home')render()}
+function renderAll(){render()}function renderSheet(){render()}
+function render(){const el=$('#view');const v=view();
+  const navOn={pick:'nv-list',home:'nv-home',list:'nv-list',product:'nv-list',data:'nv-list',certs:'nv-list',calc:'nv-list',docs:'nv-list',batch:'nv-list',batchd:'nv-list',guide:'nv-guide',settings:'nv-set'}[v.v];
+  document.querySelectorAll('#appnav .nv').forEach(b=>b.classList.toggle('on',b.id===navOn));
+  if(v.v==='home'){el.innerHTML=viewHome();bindHome();return}
+  if(v.v==='list'){el.innerHTML=bar('عطور اللتر')+viewList();bindCommon();return}
+  if(v.v==='pick'){el.innerHTML=bar('اختر الزيت')+viewPick();bindCommon();bindPick();return}
+  if(v.v==='guide'){el.innerHTML=bar('ماذا يجب أن أفعل؟')+`<div class="card">${paneGuide()}</div>`;bindCommon();bindGuide();return}
+  if(v.v==='settings'){el.innerHTML=bar('الشركة والكحول')+'<div class="card" id="setv"></div>';bindCommon();renderSettings();return}
+  const p=state.products.find(x=>x.id===v.id);if(!p){stack.length=1;render();return}
+  state.cur=p.id;const c=compute(p,state.settings);const L=checks(p,state.settings,c);
+  if(v.v==='product'){el.innerHTML=bar(p.name||'بدون اسم')+viewProduct(p,c,L);bindCommon();bindProduct(p);return}
+  if(v.v==='batchd'){const b=state.batches.find(x=>x.id===v.bid);if(!b){back();return}el.innerHTML=bar('Charge '+b.batchNo)+viewBatch(p,b);bindCommon();bindBatch(p,b);return}
+  const fn={data:paneProduct,certs:paneDocs,calc:paneCalc,docs:paneOut,batch:paneBatch}[v.v];
+  el.innerHTML=bar(SECT[v.v])+`<div class="card" id="pane">${fn(p,c,L)}</div>`;bindCommon();bindPane(p,c)}
+function bindCommon(){const b=$('#goBack');if(b)b.onclick=back;const h=$('#goHome');if(h)h.onclick=home;const n=$('#lNew');if(n)n.onclick=()=>go('pick');bindCards()}
+function viewHome(){const ps=state.products;const st=ps.map(p=>status(checks(p,state.settings,compute(p,state.settings))).c);
+  const g=state.settings.guide||{};const done=GUIDE.filter(x=>g[x.k]).length;
+  return `<div class="kpis"><div class="kpi"><small>عطور اللتر</small><b>${ps.length}</b></div><div class="kpi"><small>جاهزة</small><b>${st.filter(x=>x==='ok').length}</b></div><div class="kpi"><small>تحتاج عملاً</small><b>${st.filter(x=>x!=='ok').length}</b></div></div>
+  <div class="home">
+   <button class="tile primary" type="button" id="hNew">${ic('new')}<span class="tt"><b>عطر لتر جديد</b><span>زيت + كحول</span></span></button>
+   <button class="tile" type="button" id="hList">${ic('list')}<span class="tt"><b>العطور</b><span>${ps.length} عطر</span></span></button>
+   <button class="tile" type="button" id="hGuide">${ic('guide')}<span class="tt"><b>الدليل</b><span>${done} / ${GUIDE.length} خطوات</span></span></button>
+   <button class="tile" type="button" id="hSet">${ic('set')}<span class="tt"><b>الشركة والكحول</b><span>${esc((state.settings.alcohol||{}).name||'')}</span></span></button>
+  </div>
+  ${ps.length?`<h3>آخر العطور</h3><div style="display:grid;gap:8px">${ps.slice(0,4).map(pcard).join('')}</div>`:''}`}
+function bindHome(){$('#hNew').onclick=()=>go('pick');$('#hList').onclick=()=>go('list');$('#hGuide').onclick=()=>go('guide');$('#hSet').onclick=()=>go('settings');bindCards()}
+function pcard(p){const c=compute(p,state.settings);const st=status(checks(p,state.settings,c));
+  return `<button type="button" class="pcard" data-id="${esc(p.id)}"><b class="ltr">${esc(p.name||'بدون اسم')}</b><span class="pill ${st.c}">${st.t}</span><small class="ltr">${esc(p.code||p.oilCode||'—')} · ${esc(p.oilPct||'?')} % Öl · ${esc(c.cls.H.join(' ')||'—')}</small></button>`}
+function bindCards(){document.querySelectorAll('.pcard').forEach(b=>b.onclick=()=>go('product',{id:b.dataset.id}))}
+function viewList(){return `<div style="display:grid;gap:8px">${state.products.map(pcard).join('')||'<div class="empty"><h2>لا توجد عطور بعد</h2><p class="hint">اضغط «عطر جديد» في الأسفل.</p></div>'}</div><button class="btn primary" type="button" id="lNew">+ عطر لتر جديد</button>`}
+/* ---------- Google Drive: code table + factory certificates ---------- */
+function mcpMsg(e,server){return (e&&e.message)||'خطأ غير معروف'}
+async function loadCodes(force){if(!state.mcp){state.codesErr='الربط مع Google غير متاح في هذا العرض.';render();return}
+  try{const r=await state.mcp.callTool('Google Sheets','get_values',{spreadsheetId:CODES_SHEET,range:'C2:E3000'},{cache:{staleTime:force?0:600000,gcTime:86400000,...(force?{refresh:true}:{})}});
+    const vals=(r.payload&&r.payload.values)||[];state.codes=vals.map(v=>({name:String(v[0]||'').trim(),code:String(v[1]||'').trim(),fc:String(v[2]||'').trim()})).filter(x=>x.name&&x.code);state.codesErr=''}
+  catch(e){state.codesErr=mcpMsg(e,'Google Sheets')}if(view().v==='pick')render()}
+function viewPick(){if(!state.codes&&!state.codesErr){loadCodes();return '<div class="card"><p class="hint">يقرأ جدول الأكواد من Google Sheets…</p></div>'}
+  const q=state.pickQ.toLowerCase();const used=new Set(state.products.map(p=>p.oilCode));
+  const list=(state.codes||[]).filter(x=>!q||x.name.toLowerCase().includes(q)||x.code.toLowerCase().includes(q)||x.fc.includes(q)).slice(0,80);
+  return `<div class="card"><p class="hint">اختر الزيت من جدول «Fragrance Hub Codes». تُجلب شهاداته من Google Drive بكود المصنع وتُقرأ تلقائياً.</p>
+   <label class="f" for="pickQ"><span>بحث بالاسم أو الكود</span><input id="pickQ" value="${esc(state.pickQ)}" placeholder="Pura Mirage / XJ-ERB / 3010218" autocomplete="off"></label>
+   ${state.codesErr?`<div class="chk bad"><i>✕</i><span>${esc(state.codesErr)}</span></div><button class="btn sm" type="button" id="codesRe">إعادة المحاولة</button>`:''}</div>
+  <div style="display:grid;gap:8px" id="pickList">${list.map(x=>`<button type="button" class="pcard" data-pick="${esc(x.code)}"><b class="ltr">${esc(x.name)}</b>${x.fc?'<span class="pill ok">شهادة</span>':'<span class="pill warn">بدون كود مصنع</span>'}<small class="ltr">${esc(x.code)}${x.fc?' · '+esc(x.fc):''}${used.has(x.code)?' · موجود':''}</small></button>`).join('')||(state.codes?'<p class="hint">لا نتائج.</p>':'')}</div>
+  <button class="btn" type="button" id="pickManual">بدون اختيار — إدخال يدوي</button>`}
+function bindPick(){const i=$('#pickQ');if(i){i.oninput=()=>{state.pickQ=i.value;clearTimeout(state.pT);state.pT=setTimeout(()=>{render();const x=$('#pickQ');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length)}},250)}}
+  const re=$('#codesRe');if(re)re.onclick=()=>{state.codesErr='';state.codes=null;loadCodes(true);render()};
+  const pm=$('#pickManual');if(pm)pm.onclick=newProduct;
+  document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>pickOil((state.codes||[]).find(x=>x.code===b.dataset.pick)))}
+async function pickOil(x){if(!x||!state.db)return;const ex=state.products.find(p=>p.oilCode===x.code);if(ex){toast('هذا الزيت موجود — فُتح');stack.length=1;stack.push({v:'list'},{v:'product',id:ex.id});render();return}
+  const pq=/-PQ-SH$/i.test(x.code);const b=merge(blankProduct(),{name:`${x.name}${pq?' Premium':''} – Parfümkonzentrat`,code:x.code+'-1L',oilName:x.name+(pq?' (Premium)':''),oilCode:x.code,factoryCode:x.fc});
+  try{const r=await state.db.collection('products').add(b);stack.length=1;stack.push({v:'list'},{v:'product',id:r.id},{v:'certs',id:r.id});render();
+    if(x.fc){const wait=t=>new Promise(r=>setTimeout(r,t));for(let i=0;i<20&&!state.products.find(p=>p.id===r.id);i++)await wait(150);const p=state.products.find(p=>p.id===r.id);if(p)fetchCerts(p)}
+    else toast('لا يوجد كود مصنع لهذا الزيت — ارفع الشهادات يدوياً')}catch(e){toast('تعذر الإنشاء')}}
+function b64ToBlob(b64,type){const bin=atob(b64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type})}
+async function findCerts(code){const r=await state.mcp.callTool('Google Drive','search_files',{query:`title contains '${code.replace(/'/g,"\\'")}' and mimeType = 'application/pdf' and trashed = false`,excludeContentSnippets:true,pageSize:20},{cache:false});
+  const fs=((r.payload&&r.payload.files)||[]).filter(f=>f.mimeType==='application/pdf'&&String(f.title||'').includes(code));
+  const en=fs.filter(f=>!/de-DE|_de\b|deutsch/i.test(f.title)),de=fs.filter(f=>/de-DE|_de\b|deutsch/i.test(f.title));
+  const by=a=>a.sort((x,y)=>String(y.modifiedTime).localeCompare(String(x.modifiedTime)));return{en:by(en),de:by(de),all:fs}}
+async function fetchCerts(p){const code=String(p.factoryCode||'').trim();if(!code){toast('أدخل كود المصنع أولاً');return}
+  if(!state.mcp){toast('الربط مع Google غير متاح في هذا العرض');return}
+  const key=p.id+'combined';state.busy[key]='يبحث في Google Drive عن '+code+'…';state.drive[p.id]={msg:'',files:[]};render();
+  try{const f=await findCerts(code);state.drive[p.id].files=f.all;
+    const pick=f.en[0]||f.de[0];if(!pick){state.drive[p.id].msg='لم أجد في Google Drive ملف PDF باسم يحتوي '+code+'. اطلب الشهادات من المصنع أو ارفعها يدوياً.';return}
+    state.busy[key]=`ينزّل ${pick.title} (${fmt((+pick.fileSize||0)/1048576,1)} MB)…`;render();
+    const d=await state.mcp.callTool('Google Drive','download_file_content',{fileId:pick.id},{cache:false});
+    const b64=d.payload&&d.payload.content;if(!b64)throw{code:'tool_error',message:'الملف لم يصل'};
+    const file=new File([b64ToBlob(b64,'application/pdf')],pick.title,{type:'application/pdf'});
+    p.certSrc={id:pick.id,title:pick.title,url:pick.viewUrl||'',modified:pick.modifiedTime||'',lang:f.en[0]===pick?'en':'de'};save(p);
+    delete state.busy[key];await handleFile(p,'combined',file)}
+  catch(e){state.drive[p.id].msg=mcpMsg(e,'Google Drive')+(e&&e.code==='tool_error'?' — قد يكون الملف كبيراً جداً للتنزيل عبر الربط؛ افتحه من Drive وارفعه يدوياً.':'')}
+  finally{delete state.busy[key];render()}}
+function viewProduct(p,c,L){const st=status(L);const bad=L.filter(x=>x.lvl==='bad').length,warn=L.filter(x=>x.lvl==='warn').length;
+  const sub={data:`${esc(p.oilPct||'?')} % زيت · ${esc(p.volumeL||1)} L`,certs:['ifra','allergen','sds'].filter(k=>p[k].fileId).length+' / 3 مرفوعة',calc:esc(c.cls.H.join(' ')||'غير مصنف'),docs:'SDS · IFRA · الحساسية · الملصق',batch:state.batches.filter(b=>b.productId===p.id).length+' دفعة'};
+  return `<div class="card"><div class="head"><div><h2 class="ltr">${esc(p.name||'بدون اسم')}</h2><p class="hint ltr">${esc(p.oilName||'')} ${p.oilCode?'· '+esc(p.oilCode):''}</p></div><span class="pill ${st.c}">${st.t}</span></div>
+   ${c.cls.pic.length?`<div class="ghsrow">${c.cls.pic.map(ghsSvg).join('')}<b style="color:var(--hz)">${esc(c.cls.signal)}</b></div>`:''}
+   ${bad||warn?`<p class="hint">${bad?bad+' ناقص · ':''}${warn} للمراجعة — التفاصيل في «التصنيف والحساب».</p>`:''}</div>
+  <div class="home">${Object.keys(SECT).map(k=>`<button class="tile" type="button" data-sec="${k}">${ic(k)}<span class="tt"><b>${SECT[k]}</b><span>${sub[k]}</span></span></button>`).join('')}</div>
+  <div id="delZone"><button class="btn danger sm" type="button" id="btnDel">حذف هذا العطر</button></div>`}
+function bindProduct(p){document.querySelectorAll('[data-sec]').forEach(b=>b.onclick=()=>go(b.dataset.sec,{id:p.id}));
+  const del=$('#btnDel');if(del)del.onclick=()=>{$('#delZone').innerHTML=`<div class="confirm">حذف «${esc(p.name||'العطر')}» نهائياً؟ <button class="btn sm danger" type="button" id="delYes">نعم، احذف</button><button class="btn sm" type="button" id="delNo">إلغاء</button></div>`;
+    $('#delNo').onclick=render;$('#delYes').onclick=async()=>{try{await state.db.collection('products').doc(p.id).delete();toast('تم الحذف');stack.length=1;stack.push({v:'list'});render()}catch(e){toast('تعذر الحذف')}}}}
+async function newProduct(){if(!state.db){toast('التخزين غير متاح');return}try{const r=await state.db.collection('products').add(blankProduct());stack.length=1;stack.push({v:'list'},{v:'product',id:r.id},{v:'data',id:r.id});render()}catch(e){toast('تعذر الإنشاء')}}
+function get(o,path){return path.split('.').reduce((a,k)=>a==null?a:a[k],o)??''}
+function set(o,path,v){const ks=path.split('.');let a=o;ks.slice(0,-1).forEach(k=>{a=a[k]=a[k]||{}});a[ks.at(-1)]=v}
+function field(path,label,o={}){const p=curP();const v=get(p,path);const id='f_'+path.replace(/\./g,'_');const cls=(o.ltr?'ltr ':'')+(o.num?'num':'');
+  return `<label class="f" for="${id}"><span class="${o.req?'req':''}">${label}</span>${o.area?`<textarea id="${id}" rows="${o.rows||2}" class="${cls}" data-path="${path}">${esc(v)}</textarea>`:`<input id="${id}" class="${cls}" data-path="${path}" value="${esc(v)}" ${o.ph?`placeholder="${esc(o.ph)}"`:''} ${o.num?'inputmode="decimal"':''}>`}${o.help?`<small class="mark">${o.help}</small>`:''}</label>`}
+
+function paneProduct(p,c){const A=state.settings.alcohol||{};
+  return `<div><h2>بيانات عطر اللتر</h2><p class="hint">المنتج = زيت العطر + الكحول المحدد في «الشركة والكحول». كل النسب بالوزن (% w/w).</p></div>
+  <div class="fields">
+    ${field('name','الاسم التجاري (على الملصق وSDS)',{req:1,ltr:1,ph:'Pura Mirage – Parfümkonzentrat'})}
+    ${field('code','رقم الصنف (في المتجر)',{ltr:1,ph:'XJ-ERB-U-03-PQ-SH-1L'})}
+    ${field('volumeL','الحجم (لتر)',{num:1,ltr:1})}
+    ${field('ufi','رقم UFI',{ltr:1,ph:'XXXX-XXXX-XXXX-XXXX',help:'بعد التسجيل في بوابة ECHA — انظر الدليل'})}
+  </div>
+  <h3>الزيت</h3>
+  <div class="fields">
+    ${field('oilName','اسم الزيت',{req:1,ltr:1})}
+    ${field('oilCode','كود الزيت',{ltr:1})}
+    ${field('factoryCode','كود شهادة المصنع',{ltr:1,num:1})}
+    ${field('oilUfi','UFI الزيت (من المصنع)',{ltr:1,ph:'XXXX-XXXX-XXXX-XXXX',help:'لتسجيل الخليط في ECHA كـ Mixture in Mixture'})}
+    ${field('oilPct','نسبة الزيت في الخليط (% w/w)',{req:1,num:1,ltr:1,help:c.cat4&&c.cat4.lim!==null?`حد IFRA فئة 4 لهذا الزيت: ${fmt(c.cat4.lim,2)} %`:'يُقرأ حد IFRA بعد رفع الشهادة'})}
+    ${field('odor','الرائحة (SDS القسم 9)',{ltr:1,ph:'fruchtig, süß, blumig'})}
+    ${field('odorEn','الرائحة بالإنجليزية (SDS EN)',{ltr:1,ph:'fruity, sweet, floral'})}
+    ${field('appearance','المظهر',{ltr:1})}
+    ${field('appearanceEn','المظهر بالإنجليزية',{ltr:1})}
+    ${field('oilBatch','Charge الزيت من المصنع',{ltr:1,help:'يُقرأ من الشهادة إن وُجد'})}
+    ${field('density','الكثافة المقاسة (g/ml)',{num:1,ltr:1,help:`بدونها تُقدَّر: ${fmt(estDensity(p,state.settings),3)}`})}
+  </div>
+  <div class="box"><div class="head"><h3>الكحول المستعمل (مشترك لكل العطور)</h3><button class="btn sm" type="button" id="openSet">تعديل</button></div>
+   <p class="hint ltr">${esc(A.name||'—')} · Ethanol ${fmt(num(A.ethanolWW),3)} % w/w · ${esc((A.denats||[]).map(d=>d.name).join(' + ')||'ohne Vergällungsmittel')} · ${esc(A.hazards||'')}</p></div>`}
+
+const DOCS=[{k:'ifra',t:'شهادة IFRA للزيت',d:'كل الفئات — تُحوَّل لنسب الخليط'},{k:'allergen',t:'إعلان مسببات الحساسية',d:'القائمة الموسعة 2023/1545 مع النسب'},{k:'sds',t:'SDS الزيت',d:'القسم 3 (المكونات الخطرة وتصنيفها) هو أساس التصنيف'}];
+function paneDocs(p){
+  return `<div><h2>شهادات الزيت</h2><p class="hint">ارفع الملف، يقرأ النظام القيم، ثم راجعها مقابل الأصل. الملف الشامل يملأ الثلاثة مرة واحدة.</p></div>
+  ${driveBox(p)}
+  <div class="dc"><h3>أو ارفع ملفاً شاملاً من جهازك (SDS + IFRA + الحساسية)</h3>
+   <label class="drop">${state.busy[p.id+'combined']?`<span class="busy">${esc(state.busy[p.id+'combined'])}</span>`:'اضغط لاختيار الملف الشامل (PDF)'}<input type="file" accept=".pdf,application/pdf" data-file="combined" aria-label="الملف الشامل"></label></div>
+  <div class="cards">${DOCS.map(D=>docCard(p,D)).join('')}</div>`}
+function driveBox(p){const d=state.drive[p.id]||{};const src=p.certSrc;const busy=state.busy[p.id+'combined'];
+  return `<div class="dc" style="border-color:var(--gold)"><div class="head"><h3>شهادات المصنع من Google Drive</h3>${src?'<span class="pill ok">مربوطة</span>':''}</div>
+   <div class="fields">${field('factoryCode','كود شهادة المصنع',{ltr:1,num:1,ph:'3010218'})}</div>
+   ${src?`<div class="file">📄 ${src.url?`<a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.title)}</a>`:esc(src.title)} · ${src.lang==='en'?'English':'Deutsch'}${src.modified?' · '+esc(deDate(src.modified)):''}</div>`:''}
+   ${busy?`<span class="busy">${esc(busy)}</span>`:`<button class="btn primary" type="button" id="driveGo">${src?'تحديث الشهادات من Drive':'جلب الشهادات من Drive وقراءتها'}</button>`}
+   ${d.msg?`<div class="chk warn"><i>!</i><span>${esc(d.msg)}</span></div>`:''}
+   ${(d.files||[]).length>1?`<details><summary class="mark">${d.files.length} ملفات وُجدت</summary><div class="file">${d.files.map(f=>`<div><a href="${esc(f.viewUrl||'#')}" target="_blank" rel="noopener">${esc(f.title)}</a></div>`).join('')}</div></details>`:''}</div>`}
+function docCard(p,D){const o=p[D.k];const busy=state.busy[p.id+D.k];let body='';
+  if(D.k==='ifra')body=`<div class="fields">${field('ifra.amendment','Amendment',{num:1,ltr:1})}${field('ifra.date','التاريخ',{ltr:1})}</div>
+    <div class="tblwrap"><table><thead><tr><th>فئة</th><th class="n">حد الزيت %</th></tr></thead><tbody>${IFRA_CATS.map(k=>`<tr><td class="ltr">Cat. ${k}</td><td><input class="ltr num" data-ifra="${k}" value="${esc((o.cats||{})[k]??'')}" style="min-width:80px"></td></tr>`).join('')}</tbody></table></div>`;
+  if(D.k==='allergen')body=`${field('allergen.date','التاريخ',{ltr:1})}<label style="display:flex;gap:8px;align-items:center;font-size:.86rem"><input type="checkbox" id="reg2023" style="width:auto" ${o.reg2023?'checked':''}>يشمل القائمة الموسعة 2023/1545</label>
+    <div class="tblwrap"><table><thead><tr><th>المادة</th><th>CAS</th><th class="n">% في الزيت</th><th></th></tr></thead><tbody>${(o.items||[]).map((a,i)=>`<tr><td><input class="ltr" data-al="${i}" data-f="name" value="${esc(a.name)}"></td><td><input class="ltr num" data-al="${i}" data-f="cas" value="${esc(a.cas)}" style="min-width:90px"></td><td><input class="ltr num" data-al="${i}" data-f="pct" value="${esc(a.pct)}" style="min-width:70px"></td><td><button class="btn sm" type="button" data-alrm="${i}" aria-label="حذف">×</button></td></tr>`).join('')}</tbody></table></div>
+    <div><button class="btn sm" type="button" id="alAdd">+ سطر</button> <span class="mark">${(o.items||[]).length} مادة</span></div>`;
+  if(D.k==='sds')body=`<div class="fields">${field('sds.date','التاريخ',{ltr:1})}${field('sds.flash','نقطة الوميض °C',{num:1,ltr:1})}${field('sds.density','الكثافة',{num:1,ltr:1})}${field('sds.wgk','WGK',{ltr:1})}</div>${field('sds.hazards','عبارات H للزيت',{area:1,ltr:1})}
+    <div class="tblwrap"><table><thead><tr><th>المكوّن</th><th>CAS</th><th>% في الزيت</th><th>التصنيف</th><th>M</th><th></th></tr></thead><tbody>${(o.components||[]).map((x,i)=>`<tr><td><input class="ltr" data-cp="${i}" data-f="name" value="${esc(x.name)}"></td><td><input class="ltr num" data-cp="${i}" data-f="cas" value="${esc(x.cas)}" style="min-width:90px"></td><td><input class="ltr num" data-cp="${i}" data-f="pct" value="${esc(x.pct)}" style="min-width:80px"></td><td><input class="ltr" data-cp="${i}" data-f="hazard" value="${esc(x.hazard)}" style="min-width:200px"></td><td><input class="ltr num" data-cp="${i}" data-f="m" value="${esc(x.m??'')}" style="width:50px"></td><td><button class="btn sm" type="button" data-cprm="${i}" aria-label="حذف">×</button></td></tr>`).join('')}</tbody></table></div>
+    <div><button class="btn sm" type="button" id="cpAdd">+ مكوّن</button></div>`;
+  return `<div class="dc"><div class="head"><h3>${D.t}</h3>${o.fileId?`<span class="pill ${o.checked?'ok':'warn'}">${o.checked?'تمت المراجعة':'بانتظار مراجعتك'}</span>`:'<span class="pill bad">غير مرفوع</span>'}</div>
+   <p class="hint">${D.d}</p>${o.fileId?`<div class="file">📄 ${o.fileUrl?`<a href="${esc(o.fileUrl)}" target="_blank" rel="noopener">${esc(o.fileName)}</a>`:esc(o.fileName)}</div>`:''}
+   <label class="drop">${busy?`<span class="busy">${esc(busy)}</span>`:(o.fileId?'استبدال الملف':'اضغط لاختيار الملف')}<input type="file" accept=".pdf,application/pdf,image/*" data-file="${D.k}" aria-label="${D.t}"></label>
+   ${body}<label style="display:flex;gap:8px;align-items:center;font-size:.86rem"><input type="checkbox" data-checked="${D.k}" style="width:auto" ${o.checked?'checked':''}>راجعتُ القيم مقابل الأصل</label></div>`}
+
+function paneCalc(p,c,L){const st=status(L);const k=c.cls;
+  return `<div class="head"><div><h2>التصنيف والحساب</h2><p class="hint">حساب حسب قواعد CLP (طريقة الجمع) من القسم 3 في SDS الزيت وSDS الكحول. يُؤخذ الحد الأعلى لكل نطاق (افتراض متحفظ). النتيجة مسودة يراجعها شخص مختص.</p></div><span class="pill ${st.c}">${st.t}</span></div>
+  <div class="checks">${L.map(x=>`<div class="chk ${x.lvl}"><i>${x.lvl==='ok'?'✓':x.lvl==='warn'?'!':'✕'}</i><span>${esc(x.t)}</span></div>`).join('')}</div>
+  <div class="box"><div class="head"><h3>تصنيف الخليط (CLP)</h3><b class="ltr" style="color:var(--hz)">${esc(k.signal||'—')}</b></div>
+   <div class="ghsrow">${k.pic.map(ghsSvg).join('')||'<span class="mark">لا رموز</span>'}</div>
+   <div>${k.H.map(h=>`<div class="hzline"><b>${h}</b> ${esc(HT[h]||'')} <span class="mark">(${esc(HCLASS[h]||'')})</span></div>`).join('')||'<span class="mark">غير مصنف</span>'}</div>
+   ${k.sensNames.length?`<div class="hzline">Enthält: ${esc(k.sensNames.join(', '))}</div>`:''}${k.euh208.length?`<div class="hzline"><b>EUH208</b> Enthält ${esc(k.euh208.join(', '))}. Kann allergische Reaktionen hervorrufen.</div>`:''}
+   <details><summary class="mark">لماذا هذا التصنيف؟</summary><div style="display:grid;gap:4px;margin-top:6px">${k.why.map(w=>`<div class="why"><b>${w.h}</b>: ${esc(w.t)}</div>`).join('')}</div></details>
+   <div><span class="mark">عبارات P على الملصق:</span> <span class="ltr num" style="font-size:.82rem">${esc(k.labelP.join(', '))}</span></div></div>
+  <div class="stats"><div class="stat"><small>الزيت</small><b>${fmt(c.oil,2)} %</b></div><div class="stat"><small>الإيثانول</small><b>${fmt(c.eth,2)} %</b></div><div class="stat"><small>الكثافة ${c.densityEst?'(مقدرة)':''}</small><b>${fmt(c.density,3)}</b></div><div class="stat"><small>وزن ${esc(p.volumeL||1)} L</small><b>${fmt(c.massKg,3)} kg</b></div></div>
+  <h3>التركيبة</h3><div class="tblwrap"><table><thead><tr><th>المادة</th><th>CAS</th><th class="n">% w/w</th></tr></thead><tbody>${c.comp.map(r=>`<tr><td class="ltr">${esc(r.name)}</td><td class="ltr num">${esc(r.cas)}</td><td class="n">${fmtSig(r.pct)}</td></tr>`).join('')}</tbody></table></div>
+  <h3>المكونات الخطرة في الخليط (للقسم 3 من SDS)</h3><div class="tblwrap"><table><thead><tr><th>المادة</th><th>CAS</th><th class="n">% في الخليط</th><th>التصنيف</th></tr></thead><tbody>${c.ings.map(i=>`<tr><td class="ltr">${esc(i.name)}</td><td class="ltr num">${esc(i.cas||'')}</td><td class="n">${i.src==='oil'?`${fmtSig(i.min)}–${fmtSig(i.max)}`:fmtSig(i.max)}</td><td class="ltr" style="font-size:.75rem">${esc(i.hazard)}</td></tr>`).join('')}</tbody></table></div>
+  <h3>IFRA للخليط</h3><p class="hint">أقصى نسبة لهذا الخليط في المنتج النهائي = حد الزيت ÷ نسبة الزيت × 100 (بحد أقصى 100 %).</p>
+  <div class="tblwrap"><table><thead><tr><th>فئة</th><th class="n">حد الزيت</th><th class="n">حد الخليط</th></tr></thead><tbody>${c.ifraRows.filter(r=>r.raw!==undefined&&r.raw!=='').map(r=>`<tr class="${r.k==='4'?'hl':''}"><td class="ltr">Cat. ${r.k}</td><td class="n">${r.lim!==null?fmt(r.lim,3)+' %':esc(r.raw)}</td><td class="n">${r.mix!==null?fmt(r.mix,2)+' %':'—'}</td></tr>`).join('')||'<tr><td colspan="3" class="mark">ارفع شهادة IFRA</td></tr>'}</tbody></table></div>
+  <h3>مسببات الحساسية في الخليط</h3><div class="tblwrap"><table><thead><tr><th>المادة</th><th>CAS</th><th class="n">% في الزيت</th><th class="n">% في الخليط</th></tr></thead><tbody>${c.allergens.filter(a=>a.prod>0).sort((a,b)=>b.prod-a.prod).map(a=>`<tr><td class="ltr">${esc(a.name)}</td><td class="ltr num">${esc(a.cas)}</td><td class="n">${fmtSig(a.pin)}</td><td class="n">${fmtSig(a.prod)}</td></tr>`).join('')||'<tr><td colspan="4" class="mark">لا بيانات</td></tr>'}</tbody></table></div>`}
+
+function paneOut(p,c,L){const busy=state.busy[p.id+'pub'];const iss=pubIssues(p,c);const D=p.docs||{};const S=p.shopify||{};
+  const row=(k,t,d)=>`<div class="docrow"><div><b>${t}</b><p>${d}</p></div><div style="display:flex;gap:6px"><button class="btn primary sm" type="button" data-pd="${k}-de">DE</button><button class="btn sm" type="button" data-pd="${k}-en">EN</button></div></div>`;
+  return `<div><h2>المستندات للزبون</h2><p class="hint">بالألمانية لزبائن ألمانيا وبالإنجليزية لزبائن الخارج. لا يظهر فيها اسم مصنع الزيت ولا أسماء الموردين. الملصق وشهادة التحليل تُطبع من صفحة كل دفعة (فيها رقم Charge).</p></div>
+  <div class="box"><h3>مراجعة SDS</h3><div class="fields">${field('sdsVersion','رقم نسخة SDS',{ltr:1})}${field('approvedBy','راجعها (الاسم)',{ltr:1,ph:'Name, Qualifikation'})}</div>
+   <label style="display:flex;gap:8px;align-items:center;font-size:.86rem"><input type="checkbox" id="sdsOk" style="width:auto" ${p.sdsApproved?'checked':''}>راجع شخص مختص هذه الـ SDS ووافق عليها (تُطبع بدون علامة «Entwurf / Draft»)</label></div>
+  <div class="doclist">
+   ${row('sds','Sicherheitsdatenblatt / Safety Data Sheet','16 قسماً حسب REACH الملحق II (Reg. 2020/878).')}
+   ${row('ifra','IFRA-Konformitätserklärung / IFRA Certificate','حدود الاستخدام للخليط في كل فئات IFRA.')}
+   ${row('all','Allergenerklärung / Allergen Declaration','مسببات الحساسية بنسبها في الخليط.')}
+   ${row('pack','المجموعة الكاملة في ملف واحد','SDS + IFRA + الحساسية — هذا ما يُرفع ويُرسل للزبون.')}
+  </div>
+  <div class="box"><div class="head"><h3>النشر: المتجر + إرسال الشهادات</h3>${S.id?'<span class="pill ok">في Shopify</span>':'<span class="pill warn">غير منشور</span>'}</div>
+   <p class="hint">١) يرفع المجموعة DE وEN إلى مجلد Zertifikate-Sync في Drive بنفس تسمية المصنع، ويضيف الصنف إلى جدول الأكواد — فيرسلها نظام إرسال الشهادات الحالي تلقائياً مع كل طلب. ٢) ينشئ المنتج في Shopify كـ <b>مسودة</b> بالألمانية والإنجليزية والعربية، مع UFI وروابط المستندات. تراجعه وتنشره أنت.</p>
+   <div class="fields">${field('price','سعر البيع الصافي € (لـ 1 عبوة)',{num:1,ltr:1})}${field('docCode','كود المستندات (اسم الملف في Drive)',{ltr:1,ph:docCodeOf(p),help:'يُكتب في العمود E من جدول الأكواد'})}</div>
+   ${iss.length?`<div class="checks">${iss.map(x=>`<div class="chk bad"><i>✕</i><span>${esc(x)}</span></div>`).join('')}</div>`:''}
+   ${busy?`<p class="busy">${esc(busy)}</p>`:''}
+   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" id="pubDocs" ${iss.length||busy?'disabled':''}>${D.enId?'تحديث المستندات في Drive':'رفع المستندات إلى Drive'}</button><button class="btn" type="button" id="pubShop" ${iss.length||busy?'disabled':''}>${S.id?'تحديث المنتج في Shopify':'إنشاء المنتج في Shopify'}</button></div>
+   ${D.enId?`<div class="file">📄 SDS-Paket v${esc(D.version||'')} · ${esc(deDate(D.at))} · ${D.deUrl?`<a href="${esc(D.deUrl)}" target="_blank" rel="noopener">DE</a>`:'DE'} · ${D.enUrl?`<a href="${esc(D.enUrl)}" target="_blank" rel="noopener">EN</a>`:'EN'}</div>`:''}
+   ${S.id?`<div class="file">🛒 <span class="ltr">${esc(S.handle)}</span> · ${esc(deDate(S.at))}</div>`:''}</div>
+  ${pcnBox(p,c)}`}
+
+function pcnBox(p,c){const A=state.settings.alcohol||{};
+  const rows=[['Produktname',p.name],['UFI des Gemischs',p.ufi||'[neu erzeugen: ufi.echa.europa.eu]'],['Verwendung','Gewerblich (professional use) – Parfümkonzentrat zur Weiterverarbeitung'],
+   ['Bestandteil: Duftöl (Mixture in Mixture)',`${p.oilName||'Duftöl'} – ${fmt(c.oil,2)} % – UFI ${p.oilUfi||'[UFI des Duftöls fehlt]'}`],['Bestandteil: Ethanol',`CAS 64-17-5 – ${fmt(c.eth,2)} %`],
+   ...c.dens.filter(d=>d.prod).map(d=>[`Bestandteil: ${d.name}`,`CAS ${d.cas||'—'} – ${fmtSig(d.prod)} %`]),...(c.water?[['Bestandteil: Wasser',`CAS 7732-18-5 – ${fmt(c.water,2)} %`]]:[]),
+   ['Einstufung',c.cls.H.join(', ')||'—'],['Verpackung','Flasche/Kanister '+(p.volumeL||1)+' L']];
+  return `<div class="box"><div class="head"><h3>بيانات التسجيل في ECHA (PCN)</h3>${p.oilUfi?'<span class="pill ok">UFI الزيت موجود</span>':'<span class="pill warn">UFI الزيت ناقص</span>'}</div><p class="hint">انسخ القيم إلى بوابة poisoncentres.echa.europa.eu. الزيت يُسجَّل كـ «Mixture in Mixture» برقم UFI الخاص به، فلا تحتاج كتابة مكوناته.</p>
+  ${rows.map((r,i)=>`<div class="docrow"><div><p>${esc(r[0])}</p><b class="ltr" id="pcn${i}" style="font-size:.88rem;display:block">${esc(r[1])}</b></div><button class="btn sm" type="button" data-copy="pcn${i}">نسخ</button></div>`).join('')}</div>`}
+/* ---------- batches: Charge-Nr., weighing, release, deliveries ---------- */
+const BSTAT={quarantine:{t:'قيد الفحص',c:'warn'},released:{t:'مُفرَج',c:'ok'},blocked:{t:'محظورة',c:'bad'}};
+const bRemain=b=>(num(b.units)||0)-(b.deliveries||[]).reduce((a,d)=>a+(num(d.qty)||0),0);
+function addMonths(ts,m){const d=new Date(ts);d.setMonth(d.getMonth()+m);return d.getTime()}
+function paneBatch(p,c){const bs=state.batches.filter(b=>b.productId===p.id).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const vol=num(state.newVol)||2;const mass=c.density?vol*c.density*1000:null;const stock=bs.filter(b=>b.status==='released').reduce((a,b)=>a+bRemain(b),0);
+  return `<div class="head"><div><h2>الدفعات (Chargen)</h2><p class="hint">كل خلطة لها رقم Charge خاص، يُطبع على الملصق وشهادة التحليل. تبقى «قيد الفحص» حتى تُدخل الأوزان الفعلية والفحوص، ثم تُفرَج للبيع.</p></div><span class="pill ${stock?'ok':'warn'}">مخزون مُفرَج: ${stock} × ${esc(p.volumeL||1)} L</span></div>
+  <div class="box"><h3>دفعة جديدة</h3><div class="fields">
+   <label class="f" for="nbVol"><span>الكمية (لتر)</span><input id="nbVol" class="ltr num" value="${esc(state.newVol||'2')}" inputmode="decimal"></label>
+   <label class="f" for="nbOilLot"><span>Charge الزيت من المصنع</span><input id="nbOilLot" class="ltr" value="${esc(p.oilBatch||'')}"></label>
+   <label class="f" for="nbAlcLot"><span>Charge الكحول</span><input id="nbAlcLot" class="ltr" value="${esc(state.settings.alcohol.lastLot||'')}"></label>
+   <label class="f" for="nbOp"><span>المنفّذ</span><input id="nbOp" value="${esc(state.settings.lastOperator||'')}"></label></div>
+   <div class="stats"><div class="stat"><small>الوزن الكلي</small><b>${fmt(mass,1)} g</b></div><div class="stat"><small>الزيت (Soll)</small><b>${fmt(mass!==null&&c.oil!==null?mass*c.oil/100:null,1)} g</b></div><div class="stat"><small>الكحول (Soll)</small><b>${fmt(mass!==null&&c.oil!==null?mass*(100-c.oil)/100:null,1)} g</b></div><div class="stat"><small>عبوات ${esc(p.volumeL||1)} L</small><b>${Math.floor(vol/(num(p.volumeL)||1))}</b></div></div>
+   <div><button class="btn primary sm" type="button" id="nbAdd">إنشاء الدفعة ورقم Charge</button></div></div>
+  <div style="display:grid;gap:8px">${bs.map(b=>`<button type="button" class="pcard" data-batch="${esc(b.id)}"><b class="ltr">${esc(b.batchNo)}</b><span class="pill ${BSTAT[b.status||'quarantine'].c}">${BSTAT[b.status||'quarantine'].t}</span><small>${esc(deDate(b.createdAt))} · ${fmt(num(b.volumeL),1)} L · متبقٍ ${bRemain(b)} / ${esc(b.units||0)}${b.bestBefore?' · MHD '+esc(deDate(b.bestBefore)):''}</small></button>`).join('')||'<p class="hint">لا دفعات بعد.</p>'}</div>
+  <div class="box"><div class="head"><h3>طلبات المتجر</h3><button class="btn sm" type="button" id="shopOrders">استيراد طلبات Shopify لهذا الصنف</button></div><p class="hint">يجلب الطلبات التي فيها رقم الصنف <span class="ltr">${esc(p.code||'—')}</span> ويوزعها على الدفعات المُفرَجة (الأقدم أولاً)، فتعرف لكل زبون رقم Charge الذي استلمه.</p>${state.ordMsg?`<p class="hint">${esc(state.ordMsg)}</p>`:''}</div>`}
+async function addBatch(p,c){if(!state.db)return;const vol=num($('#nbVol').value);if(!vol||c.oil===null||!c.density){toast('أدخل الكمية ونسبة الزيت');return}
+  const mass=vol*c.density*1000;const d=new Date();const ymd=d.toISOString().slice(2,10).replace(/-/g,'');
+  const n=state.batches.filter(b=>String(b.batchNo||'').includes('-'+ymd+'-')).length+1;const batchNo=`FHL-${ymd}-${String(n).padStart(2,'0')}`;
+  const op=$('#nbOp').value,alcLot=$('#nbAlcLot').value;state.settings.lastOperator=op;state.settings.alcohol.lastLot=alcLot;saveSettings();
+  const now=Date.now();
+  try{const r=await state.db.collection('batches').add({productId:p.id,batchNo,createdAt:now,volumeL:String(vol),units:String(Math.floor(vol/(num(p.volumeL)||1))),oilPct:String(c.oil),density:String(c.density.toFixed(4)),
+    oilG:String((mass*c.oil/100).toFixed(1)),alcG:String((mass*(100-c.oil)/100).toFixed(1)),oilActualG:'',alcActualG:'',oilLot:$('#nbOilLot').value,alcLot,operator:op,
+    chkClean:false,chkAppearance:false,chkOdor:false,densityMeas:'',retain:false,retainLoc:'',status:'quarantine',releasedBy:'',releasedAt:0,bestBefore:addMonths(now,num(state.settings.shelfLife)||24),deliveries:[],notes:''});
+    toast('أُنشئت الدفعة '+batchNo);go('batchd',{id:p.id,bid:r.id})}catch(e){toast('تعذر الإنشاء')}}
+function releaseIssues(b){const L=[];const dv=(a,x)=>{const s=num(a),i=num(x);return s&&i?Math.abs(i-s)/s*100:null};
+  if(!num(b.oilActualG)||!num(b.alcActualG))L.push('أدخل الأوزان الفعلية للزيت والكحول');
+  else{if(dv(b.oilG,b.oilActualG)>2)L.push('وزن الزيت يختلف أكثر من 2 % عن المطلوب');if(dv(b.alcG,b.alcActualG)>2)L.push('وزن الكحول يختلف أكثر من 2 % عن المطلوب')}
+  if(!b.oilLot)L.push('أدخل Charge الزيت من المصنع');if(!b.alcLot)L.push('أدخل Charge الكحول');
+  if(!b.chkClean)L.push('أكّد نظافة المكان والأدوات');if(!b.chkAppearance)L.push('أكّد فحص المظهر');if(!b.chkOdor)L.push('أكّد فحص الرائحة');if(!b.retain)L.push('أكّد أخذ عينة محفوظة');
+  if(!num(b.units))L.push('أدخل عدد العبوات');return L}
+function viewBatch(p,b){const st=BSTAT[b.status||'quarantine'];const lock=b.status==='released';const iss=releaseIssues(b);const ro=lock?'disabled':'';
+  const inp=(k,l,o={})=>`<label class="f" for="b_${k}"><span>${l}</span><input id="b_${k}" class="${o.ltr?'ltr ':''}${o.num?'num':''}" data-b="${k}" value="${esc(b[k]??'')}" ${o.num?'inputmode="decimal"':''} ${ro}></label>`;
+  const cb=(k,l)=>`<label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" data-bc="${k}" ${b[k]?'checked':''} ${ro}>${l}</label>`;
+  return `<div class="card"><div class="head"><div><h2 class="ltr">${esc(b.batchNo)}</h2><p class="hint ltr">${esc(p.name)} · ${esc(deDate(b.createdAt))}</p></div><span class="pill ${st.c}">${st.t}</span></div>
+   <div class="stats"><div class="stat"><small>الزيت Soll</small><b>${fmt(num(b.oilG),1)} g</b></div><div class="stat"><small>الكحول Soll</small><b>${fmt(num(b.alcG),1)} g</b></div><div class="stat"><small>MHD</small><b>${esc(deDate(b.bestBefore))}</b></div><div class="stat"><small>متبقٍ</small><b>${bRemain(b)} / ${esc(b.units||0)}</b></div></div></div>
+  <div class="card"><h3>الوزن والمواد</h3><div class="fields">${inp('oilActualG','الزيت الفعلي (g)',{num:1,ltr:1})}${inp('alcActualG','الكحول الفعلي (g)',{num:1,ltr:1})}${inp('oilLot','Charge الزيت (المصنع)',{ltr:1})}${inp('alcLot','Charge الكحول',{ltr:1})}${inp('units','عدد العبوات',{num:1,ltr:1})}${inp('operator','المنفّذ')}</div></div>
+  <div class="card"><h3>الفحوص (ISO 22716)</h3><div style="display:grid;gap:8px">${cb('chkClean','المكان والأدوات نظيفة، الميزان مفحوص')}${cb('chkAppearance','المظهر: صافٍ بدون عكارة')}${cb('chkOdor','الرائحة مطابقة للعينة المرجعية')}${cb('retain','أُخذت عينة محفوظة 50 ml')}</div>
+   <div class="fields">${inp('densityMeas','الكثافة المقاسة (g/ml)',{num:1,ltr:1})}${inp('retainLoc','مكان العينة المحفوظة')}${inp('notes','ملاحظات')}</div></div>
+  <div class="card"><h3>الإفراج</h3>${lock?`<p class="hint">أُفرج عنها بواسطة ${esc(b.releasedBy||'—')} في ${esc(deDate(b.releasedAt))}.</p><div><button class="btn danger sm" type="button" id="bBlock">حظر الدفعة (سحب من البيع)</button></div>`
+   :b.status==='blocked'?`<p class="hint">الدفعة محظورة ولا تُباع.</p><div><button class="btn sm" type="button" id="bUnblock">إعادتها إلى الفحص</button></div>`
+   :`${iss.length?`<div class="checks">${iss.map(x=>`<div class="chk warn"><i>!</i><span>${esc(x)}</span></div>`).join('')}</div>`:'<div class="chk ok"><i>✓</i><span>كل الشروط مكتملة.</span></div>'}
+    <label class="f" for="bRelBy"><span>يُفرج عنها (الاسم)</span><input id="bRelBy" value="${esc(state.settings.lastOperator||'')}"></label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" id="bRelease" ${iss.length?'disabled':''}>إفراج للبيع</button><button class="btn danger sm" type="button" id="bBlock">حظر</button></div>`}</div>
+  <div class="card"><h3>التوريد للزبائن</h3><div class="tblwrap"><table><thead><tr><th>التاريخ</th><th>الزبون</th><th>الطلب</th><th class="n">الكمية</th></tr></thead><tbody>${(b.deliveries||[]).map(d=>`<tr><td class="ltr">${esc(deDate(d.date))}</td><td>${esc(d.customer)}</td><td class="ltr">${esc(d.order||'')}</td><td class="n">${esc(d.qty)}</td></tr>`).join('')||'<tr><td colspan="4" class="mark">لا توريدات بعد</td></tr>'}</tbody></table></div>
+   ${b.status==='released'?`<div class="fields"><label class="f" for="dCust"><span>الزبون</span><input id="dCust"></label><label class="f" for="dOrd"><span>رقم الطلب</span><input id="dOrd" class="ltr"></label><label class="f" for="dQty"><span>الكمية</span><input id="dQty" class="ltr num" value="1" inputmode="numeric"></label></div><div><button class="btn sm" type="button" id="dAdd">إضافة توريد</button></div>`:'<p class="hint">التوريد ممكن فقط بعد الإفراج.</p>'}</div>
+  <div class="card"><h3>مستندات الدفعة</h3><div class="doclist">
+   <div class="docrow"><div><b>Etikett / Label</b><p>ملصق CLP مع رقم Charge وتاريخ الصلاحية.</p></div><div style="display:flex;gap:6px"><button class="btn sm primary" type="button" data-bd="label-de">DE</button><button class="btn sm" type="button" data-bd="label-en">EN</button></div></div>
+   <div class="docrow"><div><b>Analysenzertifikat / CoA</b><p>شهادة تحليل الدفعة للزبون.</p></div><div style="display:flex;gap:6px"><button class="btn sm primary" type="button" data-bd="coa-de">DE</button><button class="btn sm" type="button" data-bd="coa-en">EN</button></div></div>
+   <div class="docrow"><div><b>Herstellprotokoll</b><p>سجل التصنيع الداخلي (يُحفظ 5 سنوات على الأقل).</p></div><button class="btn sm" type="button" data-bd="rec">PDF</button></div>
+   <div class="docrow"><div><b>Rückverfolgung / Rückruf</b><p>قائمة كل الزبائن الذين استلموا هذه الدفعة.</p></div><button class="btn sm" type="button" data-bd="recall">PDF</button></div></div></div>`}
+function saveBatch(b,patch){if(!state.db)return;Object.assign(b,patch);clearTimeout(state.bT);state.bT=setTimeout(async()=>{const body=JSON.parse(JSON.stringify(b));delete body.id;try{await state.db.collection('batches').doc(b.id).set(body)}catch(e){toast('تعذر الحفظ')}},500)}
+function bindBatch(p,b){document.querySelectorAll('[data-b]').forEach(el=>el.addEventListener('input',()=>{saveBatch(b,{[el.dataset.b]:el.value})}));
+  document.querySelectorAll('[data-bc]').forEach(el=>el.onchange=()=>{saveBatch(b,{[el.dataset.bc]:el.checked});setTimeout(render,600)});
+  const rel=$('#bRelease');if(rel)rel.onclick=()=>{const by=$('#bRelBy').value.trim();if(!by){toast('اكتب اسم من يُفرج عنها');return}if(releaseIssues(b).length)return;saveBatch(b,{status:'released',releasedBy:by,releasedAt:Date.now()});toast('أُفرج عن الدفعة');setTimeout(render,600)};
+  const bl=$('#bBlock');if(bl)bl.onclick=()=>{saveBatch(b,{status:'blocked'});toast('حُظرت الدفعة');setTimeout(render,600)};
+  const ub=$('#bUnblock');if(ub)ub.onclick=()=>{saveBatch(b,{status:'quarantine',releasedBy:'',releasedAt:0});setTimeout(render,600)};
+  const da=$('#dAdd');if(da)da.onclick=()=>{const q=num($('#dQty').value);const cu=$('#dCust').value.trim();if(!q||!cu){toast('أدخل الزبون والكمية');return}if(q>bRemain(b)){toast('الكمية أكبر من المتبقي في هذه الدفعة');return}
+    saveBatch(b,{deliveries:[...(b.deliveries||[]),{date:Date.now(),customer:cu,order:$('#dOrd').value.trim(),qty:q}]});setTimeout(render,600)};
+  document.querySelectorAll('[data-bd]').forEach(x=>x.onclick=()=>{const k=x.dataset.bd;const run=k==='label-de'?pdfLabel(p,b,'de'):k==='label-en'?pdfLabel(p,b,'en'):k==='coa-de'?pdfCoa(p,b,'de'):k==='coa-en'?pdfCoa(p,b,'en'):k==='rec'?pdfRecord(p,b):pdfRecall(p,b);run.catch(e=>toast('تعذر إنشاء الملف: '+(e.message||e)))})}
+async function importOrders(p){if(!state.mcp){toast('الربط مع Shopify غير متاح في هذا العرض');return}if(!p.code){toast('أدخل رقم الصنف أولاً');return}
+  state.ordMsg='يجلب الطلبات من Shopify…';render();
+  try{const q=`query($q:String!){orders(first:100,query:$q,sortKey:CREATED_AT,reverse:true){nodes{name createdAt customer{displayName} billingAddress{company} lineItems(first:50){nodes{sku quantity}}}}}`;
+    const r=await state.mcp.callTool('Shopify','graphql_query',{query:q,variables:{q:`sku:${p.code}`}},{cache:false});
+    const nodes=((r.payload&&r.payload.data&&r.payload.data.orders&&r.payload.data.orders.nodes)||[]);
+    const done=new Set(state.batches.flatMap(b=>(b.deliveries||[]).map(d=>d.order)));
+    const open=state.batches.filter(b=>b.productId===p.id&&b.status==='released').sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+    let added=0,short=0;const changed=new Set();
+    for(const o of nodes){if(done.has(o.name))continue;const qty=(o.lineItems.nodes||[]).filter(l=>String(l.sku||'').toLowerCase()===String(p.code).toLowerCase()).reduce((a,l)=>a+(l.quantity||0),0);if(!qty)continue;
+      let need=qty;const cust=(o.billingAddress&&o.billingAddress.company)||(o.customer&&o.customer.displayName)||'—';
+      for(const b of open){if(!need)break;const free=bRemain(b);if(free<=0)continue;const take=Math.min(free,need);b.deliveries=[...(b.deliveries||[]),{date:Date.parse(o.createdAt)||Date.now(),customer:cust,order:o.name,qty:take}];need-=take;changed.add(b)}
+      if(need)short+=need;added++}
+    for(const b of changed){const body=JSON.parse(JSON.stringify(b));delete body.id;await state.db.collection('batches').doc(b.id).set(body)}
+    state.ordMsg=`${nodes.length} طلب وُجد · ${added} طلب جديد وُزّع على الدفعات${short?` · ⚠ ${short} عبوة بدون دفعة مُفرَجة — أنشئ دفعة جديدة`:''}.`}
+  catch(e){state.ordMsg=mcpMsg(e,'Shopify')}render()}
+
+/* ---------- publishing: Drive documents (for the certificate e-mails) + Shopify product ---------- */
+async function blobB64(blob){const buf=new Uint8Array(await blob.arrayBuffer());let s='';for(let i=0;i<buf.length;i+=0x8000)s+=String.fromCharCode.apply(null,buf.subarray(i,i+0x8000));return btoa(s)}
+function docCodeOf(p){return p.docCode||('FHL'+(p.factoryCode||String(p.id||'').replace(/[^A-Za-z0-9]/g,'').slice(-7).toUpperCase()))}
+function shopTexts(p,c){const nm=(p.name||'').split(' – ')[0];const mix=c.cat4&&c.cat4.mix!==null?c.cat4.mix:null;const H=c.cls.H.join(', ');
+  const de=`<p><strong>${esc(nm)}</strong> – gebrauchsfertiges Parfümkonzentrat (Duftöl in Ethanol, ${fmt(c.oil,0)} % Duftöl) zur gewerblichen Weiterverarbeitung und Abfüllung.</p><ul><li>Inhalt: ${esc(p.volumeL||1)} L</li><li>Nur für gewerbliche Verwender</li>${mix!==null?`<li>IFRA-konform – Kategorie 4 bis ${fmt(mix,0)} %</li>`:''}<li>Sicherheitsdatenblatt, IFRA-Erklärung und Allergenerklärung (DE/EN) werden mit jeder Bestellung bereitgestellt</li><li>Jede Charge mit Analysenzertifikat</li><li>Gefahrgut: UN 1266, Klasse 3 – Versand als begrenzte Menge (LQ)</li>${H?`<li>Einstufung (CLP): ${esc(H)}</li>`:''}</ul>`;
+  const en=`<p><strong>${esc(nm)}</strong> – ready-to-use perfume concentrate (fragrance oil in ethanol, ${fmt(c.oil,0)} % fragrance oil) for professional further processing and filling.</p><ul><li>Content: ${esc(p.volumeL||1)} L</li><li>For professional users only</li>${mix!==null?`<li>IFRA compliant – category 4 up to ${fmt(mix,0)} %</li>`:''}<li>Safety data sheet, IFRA declaration and allergen declaration (DE/EN) are provided with every order</li><li>Certificate of analysis for every batch</li><li>Dangerous goods: UN 1266, class 3 – shipped as limited quantity (LQ)</li>${H?`<li>Classification (CLP): ${esc(H)}</li>`:''}</ul>`;
+  const ar=`<p dir="rtl"><strong>${esc(nm)}</strong> – مركّز عطر جاهز (زيت عطري في الإيثانول، ${fmt(c.oil,0)} % زيت) للمعالجة والتعبئة التجارية.</p><ul dir="rtl"><li>المحتوى: ${esc(p.volumeL||1)} لتر</li><li>للاستخدام التجاري فقط</li>${mix!==null?`<li>مطابق لمعايير IFRA – الفئة 4 حتى ${fmt(mix,0)} %</li>`:''}<li>ورقة بيانات السلامة وإعلان IFRA وإعلان مسببات الحساسية (ألماني/إنجليزي) مع كل طلب</li><li>شهادة تحليل لكل دفعة</li><li>بضاعة خطرة: UN 1266، الفئة 3 – تُشحن ككمية محدودة (LQ)</li></ul>`;
+  return{title:{de:`${nm} – Parfümkonzentrat ${p.volumeL||1} L`,en:`${nm} – Perfume Concentrate ${p.volumeL||1} L`,ar:`${nm} – مركّز عطر ${p.volumeL||1} لتر`},body:{de,en,ar}}}
+function pubIssues(p,c){const L=checks(p,state.settings,c).filter(x=>x.lvl==='bad').map(x=>x.t);if(!p.sdsApproved)L.push('SDS لم يراجعها شخص مختص بعد — أشّر المراجعة أولاً.');if(!p.ufi||/muster/i.test(p.ufi))L.push('أدخل رقم UFI الحقيقي (ليس التجريبي).');if(!p.code)L.push('أدخل رقم الصنف.');return L}
+async function publishDocs(p){const s=state.settings;if(!state.mcp){toast('الربط مع Google غير متاح');return}const key=p.id+'pub';
+  const old=p.docs||{};const code=docCodeOf(p);
+  try{if(old.enId||old.deId){const v=String(p.sdsVersion||'1.0').split('.');p.sdsVersion=`${v[0]}.${(+v[1]||0)+1}`}p.sdsDate=Date.now();p.docCode=code;save(p);
+    const out={};
+    for(const lang of ['en','de']){state.busy[key]=`ينشئ ملف ${lang==='en'?'الإنجليزي':'الألماني'} ويرفعه إلى Drive…`;render();
+      const doc=await packDoc(p,lang);const blob=doc.output('blob');const title=lang==='en'?`${code}.pdf`:`${code} de-DE.pdf`;
+      const parentId=lang==='en'?s.folderEn:s.folderDe;let arg;const lt=await state.mcp.listTools().catch(()=>({}));
+      arg=await blobB64(blob);
+      const cr=await state.mcp.callTool('Google Drive','create_file',{title,parentId,base64Content:arg,contentMimeType:'application/pdf',disableConversionToGoogleType:true},{cache:false});
+      const f=cr.payload||{};const id=f.id||(f.file&&f.file.id);if(!id)throw{code:'tool_error',message:'لم يُنشأ الملف'};
+      let url=f.viewUrl||'';try{const sh=await state.mcp.callTool('Google Drive','share_file',{fileId:id,role:'reader',permissionId:'anyoneWithLink'},{cache:false});url=(sh.payload&&(sh.payload.shareableLink||sh.payload.viewUrl))||url}catch(e){}
+      out[lang]={id,url};
+      const prev=old[lang+'Id'];if(prev&&prev!==id){try{await state.mcp.callTool('Google Drive','update_file',{fileId:prev,title:`Archiv ${p.name} – ersetzt ${deDate()}.pdf`},{cache:false})}catch(e){}}}
+    p.docs={enId:out.en.id,enUrl:out.en.url,deId:out.de.id,deUrl:out.de.url,at:Date.now(),version:p.sdsVersion};save(p);
+    state.busy[key]='يسجّل الصنف في جدول الأكواد…';render();
+    try{const r=await state.mcp.callTool('Google Sheets','get_values',{spreadsheetId:CODES_SHEET,range:'D2:D3000'},{cache:false});const has=((r.payload&&r.payload.values)||[]).some(v=>String(v[0]||'').trim()===p.code);
+      if(!has)await state.mcp.callTool('Google Sheets','append_values',{spreadsheetId:CODES_SHEET,range:'C1',values:[[(p.name||'').split(' – ')[0]+` (${p.volumeL||1} L)`,p.code,code]]},{cache:false});state.codes=null}catch(e){toast('لم يُسجَّل في جدول الأكواد: '+mcpMsg(e,'Google Sheets'))}
+    toast('رُفعت المستندات إلى Drive (DE + EN)')}
+  catch(e){toast('تعذر الرفع: '+mcpMsg(e,'Google Drive'))}finally{delete state.busy[key];render()}}
+async function publishShop(p,c){if(!state.mcp){toast('الربط مع Shopify غير متاح');return}const key=p.id+'pub';const s=state.settings;const tx=shopTexts(p,c);
+  const price=num(p.price);if(!price){toast('أدخل سعر البيع الصافي');return}
+  const handle=(p.shopify&&p.shopify.handle)||String(p.code).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  try{state.busy[key]='ينشئ المنتج في Shopify (مسودة)…';render();
+    const mf=[{namespace:'custom',key:'ufi',type:'single_line_text_field',value:p.ufi||''},{namespace:'custom',key:'un_nummer',type:'single_line_text_field',value:'UN 1266, Kl. 3, VG II (LQ)'},{namespace:'custom',key:'clp_einstufung',type:'single_line_text_field',value:c.cls.H.join(', ')||'—'}];
+    if(p.docs&&p.docs.deUrl)mf.push({namespace:'custom',key:'sdb_de',type:'url',value:p.docs.deUrl});if(p.docs&&p.docs.enUrl)mf.push({namespace:'custom',key:'sds_en',type:'url',value:p.docs.enUrl});
+    const input={title:tx.title.de,descriptionHtml:tx.body.de,handle,vendor:s.company,productType:'Parfümkonzentrat',status:'DRAFT',tags:['Literware','B2B','Gewerblich','Parfümkonzentrat','UN1266','Gefahrgut'],
+      productOptions:[{name:'Größe',values:[{name:`${p.volumeL||1} L`}]}],metafields:mf,
+      variants:[{optionValues:[{optionName:'Größe',name:`${p.volumeL||1} L`}],sku:p.code,price:String(price.toFixed(2)),taxable:true,inventoryPolicy:'DENY',
+        inventoryItem:{sku:p.code,requiresShipping:true,tracked:true,countryCodeOfOrigin:'DE',harmonizedSystemCode:'330300',measurement:{weight:{unit:'KILOGRAMS',value:Math.round((c.massKg||1)*1000+150)/1000}}}}]};
+    const m=`mutation($input:ProductSetInput!,$id:ProductSetIdentifiers){productSet(input:$input,identifier:$id,synchronous:true){product{id handle title}userErrors{field message}}}`;
+    const r=await state.mcp.callTool('Shopify','graphql_mutation',{query:m,variables:{input,id:{handle}}},{cache:false});
+    const ps=r.payload&&r.payload.data&&r.payload.data.productSet;const ue=ps&&ps.userErrors||[];if(ue.length)throw{code:'tool_error',message:ue.map(x=>x.message).join('; ')};
+    const prod=ps&&ps.product;if(!prod)throw{code:'tool_error',message:'لم يُنشأ المنتج'};
+    state.busy[key]='يضيف الترجمة الإنجليزية والعربية…';render();
+    try{const tq=`query($id:ID!){translatableResource(resourceId:$id){translatableContent{key digest locale}}}`;const tr=await state.mcp.callTool('Shopify','graphql_query',{query:tq,variables:{id:prod.id}},{cache:false});
+      const tc=(tr.payload&&tr.payload.data&&tr.payload.data.translatableResource&&tr.payload.data.translatableResource.translatableContent)||[];const dg=k=>(tc.find(x=>x.key===k)||{}).digest;
+      const tl=[];for(const lc of ['en','ar']){if(dg('title'))tl.push({key:'title',locale:lc,value:tx.title[lc],translatableContentDigest:dg('title')});if(dg('body_html'))tl.push({key:'body_html',locale:lc,value:tx.body[lc],translatableContentDigest:dg('body_html')})}
+      if(tl.length)await state.mcp.callTool('Shopify','graphql_mutation',{query:`mutation($id:ID!,$t:[TranslationInput!]!){translationsRegister(resourceId:$id,translations:$t){userErrors{message}}}`,variables:{id:prod.id,t:tl}},{cache:false})}catch(e){toast('المنتج أُنشئ، لكن الترجمة لم تُحفظ: '+mcpMsg(e,'Shopify'))}
+    p.shopify={id:prod.id,handle:prod.handle,at:Date.now()};save(p);toast('أُنشئ المنتج في Shopify كمسودة')}
+  catch(e){toast('تعذر: '+mcpMsg(e,'Shopify'))}finally{delete state.busy[key];render()}}
+
+/* ---------- guide ---------- */
+const GUIDE=[
+ {k:'alc',t:'الكحول وإذن الجمارك',b:`<p>إذا خلطت بكحول مُحوَّر جزئياً معفى من الضريبة (مثل Alcohol denat. للعطور)، تحتاج <b>Erlaubnisschein</b> من Hauptzollamt قبل التصنيع. البديل: إيثانول ضريبته مدفوعة.</p><ul><li>انظر فاتورة/SDS المورد: «steuerfrei» أو «unvollständig vergällt» = تحتاج الإذن.</li></ul>`},
+ {k:'area',t:'منطقة الخلط والتخزين',b:`<ul><li>داخل المبنى أقل من 20 كغ سوائل قابلة للاشتعال خارج الخزانة.</li><li>طفاية، لافتات، تهوية، لا مصادر اشتعال.</li><li>التخزين الكبير: خزانة Typ 90 أو مستودع خارجي مع مسافة 5 م (200–1000 كغ).</li></ul>`},
+ {k:'certs',t:'لكل عطر: شهادات الزيت',b:`<p>ارفع SDS وIFRA والحساسية للزيت في تبويب «شهادات الزيت» وراجع القيم. القسم 3 من SDS هو أساس التصنيف.</p>`},
+ {k:'sds',t:'كيف تُنشأ SDS جديدة للخليط؟',b:`<p>الخليط مادة جديدة، فله SDS خاصة به. تحسبها الأداة من SDS الزيت والكحول حسب قواعد CLP:</p><ul><li>كل مكوّن خطر × نسبته في الخليط ← مقارنة بحدود CLP ← التصنيف (H، الرموز، كلمة التنبيه).</li><li>16 قسماً بالألمانية حسب REACH الملحق II.</li><li>قانونياً يجب أن يعدّها أو يراجعها <b>شخص مختص</b> (الخبير أو خدمة SDS). بعد المراجعة أشّر «راجع شخص مختص».</li><li>أعطها لكل زبون مجاناً مع أول توريد، وحدّثها عند أي تغيير. احتفظ بكل نسخة 10 سنوات.</li></ul>`},
+ {k:'ifra',t:'كيف يُنشأ إعلان IFRA جديد؟',b:`<p>IFRA تخص الزيت. عندما تخففه بالكحول تتغير حدود الاستخدام للخليط:</p><ul><li>حد الخليط = حد الزيت ÷ نسبة الزيت × 100.</li><li>مثال: حد الفئة 4 = 30,8 %، الزيت 25 % ← الخليط يُستعمل حتى 100 % كعطر.</li><li>الأداة تكتب «IFRA-Konformitätserklärung» باسم شركتك مبنية على شهادة الزيت (رقم التعديل والتاريخ)، بدون اسم المصنع.</li></ul>`},
+ {k:'ufi',t:'رقم UFI والتسجيل في مركز السموم (ECHA PCN)',b:`<ul><li>الخليط الخطر الذي يُباع للشركات يحتاج تسجيلاً في بوابة ECHA ورقم UFI على الملصق.</li><li>أنشئ UFI مجاناً: <span class="ltr">ufi.echa.europa.eu</span> برقمك الضريبي <span class="ltr">${esc(state.settings.vat)}</span> + رقم تركيبة.</li><li>سجّل الخليط: <span class="ltr">poisoncentres.echa.europa.eu</span> (EU Login). يمكن تسجيل عدة عطور معاً.</li><li>اكتب UFI في حقل المنتج فيُطبع على الملصق وSDS.</li><li>تأكد من التفاصيل مع الخبير.</li></ul>`},
+ {k:'label',t:'الملصق على كل لتر',b:`<ul><li>من تبويب «المستندات»: ملصق CLP بالرموز وH وP وUFI ورقم الدفعة.</li><li>العبارة الثابتة: «Nur für gewerbliche Verwender – zur Weiterverarbeitung/Abfüllung. Nicht zur direkten Anwendung.»</li><li>لا تكتب أنه جاهز للرش على الجلد، وإلا يصبح منتجاً تجميلياً بكل شروطه.</li></ul>`},
+ {k:'batch',t:'نظام الدفعات (Charge) والتتبع',b:`<ul><li>كل خلطة = دفعة برقم <b class="ltr">FHL-YYMMDD-NN</b>، تبقى «قيد الفحص» حتى تُدخل الأوزان الفعلية (فرق ≤ 2 %) وأرقام Charge الزيت والكحول والفحوص والعينة المحفوظة، ثم يُفرج عنها شخص باسمه.</li><li>الملصق وشهادة التحليل (DE/EN) يُطبعان من صفحة الدفعة، فيهما Charge وتاريخ الصلاحية (MHD).</li><li>«استيراد طلبات Shopify» يربط كل طلب بالدفعة التي خرج منها (الأقدم أولاً) — عند أي مشكلة تطبع «قائمة السحب» فتعرف كل زبون استلم الدفعة.</li><li>احفظ سجل التصنيع والعينة 5 سنوات على الأقل (ISO 22716 / GPSR).</li></ul>`},
+ {k:'shop',t:'المتجر: للشركات فقط + الشهادات',b:`<ul><li>زر «النشر» في المستندات: يرفع SDS + IFRA + الحساسية (DE وEN) إلى Drive ويسجّل الصنف في جدول الأكواد، فيرسلها نظام إرسال الشهادات مع كل طلب.</li><li>ثم ينشئ المنتج في Shopify كمسودة بثلاث لغات مع UFI وروابط المستندات ووسم B2B — راجعه وانشره أنت.</li><li>اجعل منتجات اللتر ظاهرة فقط للزبائن التجاريين المؤكدين، وأضف في الشروط: للاستخدام التجاري فقط.</li><li>عند تغيير الزيت أو النسبة: اضغط «تحديث المستندات» — ترتفع نسخة SDS تلقائياً وتُؤرشف القديمة. أرسل النسخة الجديدة لكل زبون اشترى خلال آخر 12 شهراً (REACH المادة 31).</li></ul>`},
+ {k:'ship',t:'الشحن',b:`<ul><li>UN 1266 PARFÜMERIEERZEUGNISSE، الفئة 3، مجموعة التعبئة II.</li><li>عبوة حتى 5 لتر تدخل في الكميات المحدودة (LQ): علامة LQ على الكرتونة، الوزن الكلي حتى 30 كغ.</li><li>إذا صُنف H410/H411: علامة البيئة أيضاً.</li><li>اسأل DHL إن كان شحن LQ يحتاج اتفاقية خاصة.</li></ul>`},
+ {k:'pif',t:'خدمة إضافية للزبائن',b:`<p>الشركة التي تعبئ اللتر وتبيعه للمستهلك تحتاج PIF وCPNP. أداة PIF المنفصلة والخبير يستطيعان تقديمها لها كخدمة مدفوعة.</p>`}];
+function paneGuide(){const g=state.settings.guide||{};const done=GUIDE.filter(x=>g[x.k]).length;
+  return `<div class="head"><div><h2>ماذا يجب أن أفعل؟</h2><p class="hint">الخطوات القانونية لبيع العطر باللتر للشركات. أشّر كل خطوة عند إنجازها.</p></div><span class="pill ${done===GUIDE.length?'ok':'warn'}">${done} / ${GUIDE.length}</span></div>
+  <div class="steps">${GUIDE.map(x=>`<div class="step ${g[x.k]?'done':''}"><input type="checkbox" data-g="${x.k}" ${g[x.k]?'checked':''} aria-label="${esc(x.t)}"><div><h3>${x.t}</h3>${x.b}</div></div>`).join('')}</div>`}
+function bindGuide(){document.querySelectorAll('[data-g]').forEach(cb=>cb.onchange=()=>{state.settings.guide={...(state.settings.guide||{}),[cb.dataset.g]:cb.checked};saveSettings();renderSheet()})}
+
+/* ---------- events ---------- */
+function bindPane(p,c){const pane=$('#pane');
+  pane.querySelectorAll('[data-path]').forEach(el=>el.addEventListener('input',()=>{set(p,el.dataset.path,el.value);save(p);softRefresh()}));
+  const os=$('#openSet');if(os)os.onclick=()=>go('settings');
+  const r23=$('#reg2023');if(r23)r23.onchange=()=>{p.allergen.reg2023=r23.checked;save(p);renderList()};
+  pane.querySelectorAll('[data-checked]').forEach(cb=>cb.onchange=()=>{p[cb.dataset.checked].checked=cb.checked;save(p);renderList()});
+  pane.querySelectorAll('[data-ifra]').forEach(el=>el.addEventListener('input',()=>{p.ifra.cats={...(p.ifra.cats||{}),[el.dataset.ifra]:el.value};save(p);renderList()}));
+  pane.querySelectorAll('[data-al]').forEach(el=>el.addEventListener('input',()=>{p.allergen.items[+el.dataset.al][el.dataset.f]=el.value;save(p)}));
+  pane.querySelectorAll('[data-alrm]').forEach(b=>b.onclick=()=>{p.allergen.items.splice(+b.dataset.alrm,1);save(p);renderSheet()});
+  const aa=$('#alAdd');if(aa)aa.onclick=()=>{p.allergen.items.push({name:'',cas:'',pct:''});save(p);renderSheet()};
+  pane.querySelectorAll('[data-cp]').forEach(el=>el.addEventListener('input',()=>{p.sds.components[+el.dataset.cp][el.dataset.f]=el.value;save(p);renderList()}));
+  pane.querySelectorAll('[data-cprm]').forEach(b=>b.onclick=()=>{p.sds.components.splice(+b.dataset.cprm,1);save(p);renderSheet()});
+  const ca=$('#cpAdd');if(ca)ca.onclick=()=>{p.sds.components.push({name:'',cas:'',pct:'',hazard:'',m:''});save(p);renderSheet()};
+  pane.querySelectorAll('input[data-file]').forEach(inp=>inp.onchange=()=>{const f=inp.files&&inp.files[0];if(f)handleFile(p,inp.dataset.file,f);inp.value=''});
+  const ok=$('#sdsOk');if(ok)ok.onchange=()=>{p.sdsApproved=ok.checked;save(p);renderList()};
+  const bind=(id,fn)=>{const b=$('#'+id);if(b)b.onclick=()=>fn(p).catch(e=>toast('تعذر إنشاء الملف: '+(e.message||e)))};
+  pane.querySelectorAll('[data-pd]').forEach(b=>b.onclick=()=>{const [k,lang]=b.dataset.pd.split('-');(k==='pack'?packDoc(p,lang).then(doc=>saveBlob(doc.output('blob'),fnSafe(`${p.name} – ${lang==='de'?'Dokumente':'Documents'}.pdf`))):pdfDoc(p,k,lang)).catch(e=>toast('تعذر إنشاء الملف: '+(e.message||e)))});
+  const pd=$('#pubDocs');if(pd)pd.onclick=()=>publishDocs(p);const psh=$('#pubShop');if(psh)psh.onclick=()=>publishShop(p,c);
+  const so=$('#shopOrders');if(so)so.onclick=()=>importOrders(p);
+  pane.querySelectorAll('[data-batch]').forEach(b=>b.onclick=()=>go('batchd',{id:p.id,bid:b.dataset.batch}));
+  const nv=$('#nbVol');if(nv)nv.addEventListener('input',()=>{state.newVol=nv.value;clearTimeout(state.nvT);state.nvT=setTimeout(()=>{renderSheet();const x=$('#nbVol');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length)}},500)});
+  const nb=$('#nbAdd');if(nb)nb.onclick=()=>addBatch(p,c);
+  const dg=$('#driveGo');if(dg)dg.onclick=()=>fetchCerts(p);
+  pane.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{const el=document.getElementById(b.dataset.copy);navigator.clipboard.writeText(el.textContent).then(()=>toast('تم النسخ')).catch(()=>{const r=document.createRange();r.selectNodeContents(el);const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast('النص محدد — انسخه يدوياً')})});
+}
+let softT;function softRefresh(){clearTimeout(softT);softT=setTimeout(()=>{if(view().v==='calc')render()},350)}
+/* ---------- settings ---------- */
+function renderSettings(){const box=$('#setv');if(!box||view().v!=='settings')return;const s=state.settings;const A=s.alcohol||{};
+  const f=(k,l,o={})=>`<label class="f" for="s_${k}"><span>${l}</span><input id="s_${k}" class="ltr ${o.num?'num':''}" data-s="${k}" value="${esc(s[k])}"></label>`;
+  const fa=(k,l,o={})=>`<label class="f" for="a_${k}"><span>${l}</span><input id="a_${k}" class="ltr ${o.num?'num':''}" data-a="${k}" value="${esc(A[k])}"></label>`;
+  box.innerHTML=`
+  <h3>بيانات المورد (تظهر في SDS والملصق)</h3><div class="fields">${f('company','الشركة')}${f('street','الشارع')}${f('city','الرمز والمدينة')}${f('country','الدولة')}${f('email','البريد')}${f('phone','الهاتف')}${f('vat','الرقم الضريبي')}${f('emergency','رقم الطوارئ (SDS 1.4)')}${f('sdsAuthor','معدّ SDS')}${f('labelW','عرض الملصق mm',{num:1})}${f('labelH','ارتفاع الملصق mm',{num:1})}${f('shelfLife','مدة الصلاحية (شهر) — MHD',{num:1})}</div>
+  <h3>الربط مع Drive (إرسال الشهادات)</h3><div class="fields">${f('folderEn','مجلد Drive للنسخة الإنجليزية (ID)')}${f('folderDe','مجلد Drive للنسخة الألمانية (ID)')}</div>
+  <h3>الكحول المستعمل في كل العطور</h3>
+  <label class="drop">${state.busy.alcohol?`<span class="busy">${esc(state.busy.alcohol)}</span>`:(A.fileId?'استبدال SDS الكحول':'ارفع SDS أو مواصفة الكحول')}<input type="file" accept=".pdf,application/pdf,image/*" id="alcFile" aria-label="SDS الكحول"></label>
+  ${A.fileId?`<div class="file">📄 ${A.fileUrl?`<a href="${esc(A.fileUrl)}" target="_blank" rel="noopener">${esc(A.fileName)}</a>`:esc(A.fileName)}</div>`:''}
+  <div class="fields">${fa('name','الاسم')}${fa('ethanolWW','الإيثانول % w/w',{num:1})}${fa('flash','نقطة الوميض °C',{num:1})}${fa('hazards','عبارات H')}${fa('wgk','WGK')}</div>
+  <div class="tblwrap"><table><thead><tr><th>مادة التحوير</th><th>INCI</th><th>CAS</th><th class="n">% في الكحول</th><th>التصنيف</th></tr></thead><tbody>${(A.denats||[]).map((d,i)=>`<tr><td><input class="ltr" data-dn="${i}" data-f="name" value="${esc(d.name)}"></td><td><input class="ltr" data-dn="${i}" data-f="inci" value="${esc(d.inci)}"></td><td><input class="ltr num" data-dn="${i}" data-f="cas" value="${esc(d.cas)}"></td><td><input class="ltr num" data-dn="${i}" data-f="pct" value="${esc(d.pct)}" style="width:80px"></td><td><input class="ltr" data-dn="${i}" data-f="hazard" value="${esc(d.hazard)}" style="min-width:220px"></td></tr>`).join('')}</tbody></table></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn sm" type="button" id="dnAdd">+ مادة تحوير</button><label style="display:flex;gap:8px;align-items:center;font-size:.86rem"><input type="checkbox" id="alcChk" style="width:auto" ${A.checked?'checked':''}>راجعتُ قيم الكحول مقابل الأصل</label></div>`;
+  box.querySelectorAll('[data-s]').forEach(el=>el.addEventListener('input',()=>{s[el.dataset.s]=el.value;saveSettings();softRefresh()}));
+  box.querySelectorAll('[data-a]').forEach(el=>el.addEventListener('input',()=>{s.alcohol[el.dataset.a]=el.value;saveSettings();softRefresh()}));
+  box.querySelectorAll('[data-dn]').forEach(el=>el.addEventListener('input',()=>{s.alcohol.denats[+el.dataset.dn][el.dataset.f]=el.value;saveSettings();softRefresh()}));
+  $('#dnAdd').onclick=()=>{s.alcohol.denats=[...(s.alcohol.denats||[]),{name:'',inci:'',cas:'',pct:'',hazard:''}];saveSettings();renderSettings()};
+  $('#alcChk').onchange=e=>{s.alcohol.checked=e.target.checked;saveSettings()};
+  $('#alcFile').onchange=e=>{const f=e.target.files&&e.target.files[0];if(f)handleAlcohol(f);e.target.value=''};renderAccount(box);}
+$('#nv-home').onclick=home;$('#nv-list').onclick=()=>navTo('list');$('#nv-new').onclick=()=>navTo('pick');$('#nv-guide').onclick=()=>navTo('guide');$('#nv-set').onclick=()=>navTo('settings');
+
+/* ---------- reading certificates automatically ---------- */
+async function pdfText(file){if(!window.pdfjsLib)throw new Error('pdf.js nicht geladen');const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;const pages=[];
+  for(let i=1;i<=pdf.numPages;i++){const tc=await(await pdf.getPage(i)).getTextContent();let out='',last=null,line='';for(const it of tc.items){const y=Math.round(it.transform[5]);if(last!==null&&Math.abs(y-last)>2){out+=line+'\n';line=''}line+=(line?' ':'')+it.str;last=y}pages.push(out+line)}return{pages,pdf}}
+async function pdfImages(pdf,nums,maxBytes){const out=[];for(const i of nums){const pg=await pdf.getPage(i);const vp=pg.getViewport({scale:2});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);await pg.render({canvasContext:ctx,viewport:vp}).promise;let q=.9,b;do{b=await new Promise(r=>cv.toBlob(r,'image/jpeg',q));q-=.15}while(maxBytes&&b.size>maxBytes&&q>.3);out.push(b)}return out}
+const PAGE_RE={ifra:/IFRA/i,allergen:/allergen|2023\/1545|ANNEX\s*III|ANHANG\s*III/i,sds:/Sicherheitsdatenblatt|Safety\s+Data\s+Sheet|ABSCHNITT\s+3|SECTION\s+3|Zusammensetzung|Composition/i};
+function pickPages(pages,k){if(!PAGE_RE[k])return pages.map((_,i)=>i+1);const hit=[];pages.forEach((t,i)=>{if(PAGE_RE[k].test(t))hit.push(i+1)});const ext=new Set(hit);hit.forEach(n=>{if(n<pages.length)ext.add(n+1)});const r=[...ext].sort((a,b)=>a-b);return r.length?r:pages.map((_,i)=>i+1)}
+const PROMPTS={
+ ifra:`You read an IFRA Certificate of Conformity for a fragrance oil. Copy values exactly as printed; never guess; null when absent.
+Reply with only JSON: {"amendment":number|null,"date":string|null,"batch_number":string|null,"categories":{"1":v,"2":v,"3":v,"4":v,"5A":v,"5B":v,"5C":v,"5D":v,"6":v,"7A":v,"7B":v,"8":v,"9":v,"10A":v,"10B":v,"11A":v,"11B":v,"12":v}}
+Each v is the maximum % of this fragrance in the finished product for that IFRA category as a number, the string "no restriction" if the certificate says so, or null if not stated. A comma is a decimal separator.`,
+ allergen:`You read a fragrance allergen declaration for a fragrance oil. Copy values exactly as printed; never guess.
+Reply with only JSON: {"date":string|null,"mentions_2023_1545":boolean,"items":[{"name":string,"cas":string|null,"percent":number|null}]}
+Include EVERY row, also not-detected rows (percent 0). percent = % w/w in the oil; ppm/mg/kg -> divide by 10000. A comma is a decimal separator.`,
+ sds:`You read a Safety Data Sheet (SDS) of a fragrance oil. Copy values exactly as printed; never guess; null when absent.
+Reply with only JSON: {"ufi":string|null,"batch_number":string|null,"revision_date":string|null,"flash_point_c":number|null,"density_g_ml":number|null,"appearance":string|null,"wgk":string|null,"hazard_statements":[string],"components":[{"name":string,"cas":string|null,"percent":string|null,"hazard":string|null,"m_factor":number|null}]}
+hazard_statements: H-codes with text. components: ALL rows of the section 3 composition table, percent range exactly as printed (e.g. ">= 1 - < 3"), CLP classification as printed (e.g. "Skin Sens. 1B, H317; Aquatic Chronic 2, H411"), M-factor if given. wgk: water hazard class (Wassergefährdungsklasse) from section 15 if given.`,
+ alcohol:`You read a specification or SDS of a (denatured) ethanol used for perfume. Copy values exactly as printed; never guess; null when absent.
+Reply with only JSON: {"product_name":string|null,"ethanol_percent_ww":number|null,"ethanol_percent_vv":number|null,"flash_point_c":number|null,"hazard_statements":[string],"wgk":string|null,"denaturants":[{"name":string,"cas":string|null,"percent_ww_in_alcohol":number|null,"hazard":string|null}]}
+Only fill ethanol_percent_ww if % w/w or % m/m is stated.`};
+async function isPdf(file){if(file.type==='application/pdf'||/\.pdf$/i.test(file.name||''))return true;try{const h=new Uint8Array(await file.slice(0,5).arrayBuffer());return String.fromCharCode(...h)==='%PDF-'}catch(e){return false}}
+async function storeFile(file){if(state.assets){try{const up=await state.assets.upload(file);return{fileId:up.id,fileUrl:up.url}}catch(e){toast('تعذر حفظ الملف: '+(e.message||e.code))}}return{fileId:'local-'+Date.now(),fileUrl:''}}
+async function extract(k,file,parsed){
+  const lim=await state.sample.limits().catch(()=>null);const canImg=!!(lim&&lim.images);let text='',images=null;
+  if(parsed){const nums=pickPages(parsed.pages,k);text=nums.map(n=>`--- Seite ${n} ---\n`+parsed.pages[n-1]).join('\n\n');
+    const thin=text.replace(/\s|---\s*Seite\s*\d+\s*---/g,'').length<150;
+    if(canImg&&(thin||k!=='alcohol')){images=await pdfImages(parsed.pdf,nums.slice(0,Math.min(lim.images.maxCount||4,k==='sds'?4:6)),lim.images.maxInputBytes)}
+    else if(thin)throw new Error('الملف ممسوح ولا يمكن قراءته');}
+  else{if(!canImg)throw new Error('قراءة الصور غير متاحة');images=[file]}
+  const prompt=PROMPTS[k]+'\nThe file may combine several documents; use only the part matching this document type.'+(images&&text?'\nYou get page images and an OCR text layer; trust the images for numbers.':'')+(text?'\n\nDocument text:\n'+text.slice(0,180000):'\n\nThe document is in the attached images.');
+  return state.sample.json(prompt,{modelTier:'complex',cache:false,...(images?{images}:{})})}
+async function handleFile(p,k,file){const key=p.id+k;if(file.size>20*1024*1024){toast('الملف أكبر من 20 MB');return}
+  const pdf=await isPdf(file);if(k==='combined'&&!pdf){toast('الملف الشامل يجب أن يكون PDF');return}
+  state.busy[key]='جارٍ الحفظ…';renderSheet();
+  try{const st=await storeFile(file);const kinds=k==='combined'?['ifra','allergen','sds']:[k];
+    kinds.forEach(x=>{Object.assign(p[x],{fileId:st.fileId,fileUrl:st.fileUrl,fileName:file.name,checked:false})});save(p);
+    if(!state.sample){toast('القراءة الآلية غير متاحة — أدخل القيم يدوياً');return}
+    let parsed=null;if(pdf){state.busy[key]='جارٍ فتح PDF…';renderSheet();parsed=await pdfText(file)}
+    for(const x of kinds){state.busy[key]='يقرأ النظام '+({ifra:'شهادة IFRA',allergen:'جدول الحساسية',sds:'SDS'})[x]+'…';renderSheet();
+      try{apply(p,x,await extract(x,file,parsed));save(p)}catch(e){if(e&&e.code==='not_granted')throw e;toast('تعذرت قراءة جزء: '+(e.message||e.code||e))}}
+    toast('تمت القراءة — راجع القيم مقابل الأصل')}
+  catch(e){toast(e&&e.code==='not_granted'?'لم تُمنح صلاحية القراءة الآلية':'تعذرت القراءة: '+(e.message||e.code||e))}
+  finally{delete state.busy[key];renderAll()}}
+function apply(p,k,r){if(!r||typeof r!=='object')return;
+  if(k==='ifra'){p.ifra.amendment=r.amendment??'';p.ifra.date=r.date??'';const cats={};Object.entries(r.categories||{}).forEach(([a,v])=>{if(v!==null&&v!==undefined)cats[a]=String(v)});p.ifra.cats=cats}
+  if(k==='allergen'){p.allergen.date=r.date??'';p.allergen.reg2023=!!r.mentions_2023_1545;p.allergen.items=(r.items||[]).map(a=>({name:String(a.name||''),cas:a.cas?String(a.cas):'',pct:a.percent==null?'':String(a.percent)}))}
+  if(k==='sds'){p.sds.date=r.revision_date??'';p.sds.flash=r.flash_point_c??'';p.sds.density=r.density_g_ml??'';p.sds.appearance=r.appearance??'';p.sds.wgk=r.wgk??'';p.sds.hazards=(r.hazard_statements||[]).join('\n');
+    p.sds.components=(r.components||[]).map(x=>({name:String(x.name||''),cas:x.cas?String(x.cas):'',pct:x.percent?String(x.percent):'',hazard:x.hazard?String(x.hazard):'',m:x.m_factor??''}));if(!p.appearance&&r.appearance)p.appearance=r.appearance;if(!p.oilUfi&&r.ufi)p.oilUfi=String(r.ufi)}
+  if((k==='ifra'||k==='sds')&&r.batch_number&&!p.oilBatch)p.oilBatch=String(r.batch_number)}
+async function handleAlcohol(file){const s=state.settings;state.busy.alcohol='جارٍ الحفظ…';renderSettings();
+  try{const pdf=await isPdf(file);const st=await storeFile(file);Object.assign(s.alcohol,{fileId:st.fileId,fileUrl:st.fileUrl,fileName:file.name,checked:false});saveSettings();
+    if(!state.sample){toast('أدخل القيم يدوياً');return}state.busy.alcohol='يقرأ النظام SDS الكحول…';renderSettings();
+    const r=await extract('alcohol',file,pdf?await pdfText(file):null);
+    if(r){if(r.product_name)s.alcohol.name=r.product_name;if(r.ethanol_percent_ww!=null)s.alcohol.ethanolWW=r.ethanol_percent_ww;if(r.flash_point_c!=null)s.alcohol.flash=r.flash_point_c;if((r.hazard_statements||[]).length)s.alcohol.hazards=hcodes(r.hazard_statements.join(' ')).join(', ');if(r.wgk)s.alcohol.wgk=r.wgk;
+      if((r.denaturants||[]).length)s.alcohol.denats=r.denaturants.map(d=>({name:d.name||'',inci:'',cas:d.cas||'',pct:d.percent_ww_in_alcohol??'',hazard:d.hazard||''}))}
+    saveSettings();toast('تمت القراءة — راجع القيم')}
+  catch(e){toast('تعذرت القراءة: '+(e.message||e.code||e))}finally{delete state.busy.alcohol;renderSettings();renderAll()}}
+
+/* ---------- PDF helpers ---------- */
+function pdfSafe(s){return String(s??'').replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/Σ/g,'Sum').replace(/→/g,'->').replace(/[^\x00-\xFF€–—‘’“”•…]/g,'?')}
+function newDoc(){const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});const M=16,W=210-2*M;const ink=[24,22,20],mut=[107,100,90];let y=M;
+  const T=pdfSafe;const need=h=>{if(y+h>280){doc.addPage();y=M+4}};
+  const H1=t=>{need(14);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...ink);doc.setFillColor(243,233,207);doc.rect(M,y-4.5,W,7,'F');doc.text(T(t),M+2,y);y+=7};
+  const H2=t=>{need(9);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(...ink);doc.text(T(t),M,y);y+=5};
+  const P=(t,o={})=>{doc.setFont('helvetica',o.bold?'bold':'normal');doc.setFontSize(o.size||8.8);doc.setTextColor(...(o.muted?mut:ink));for(const ln of doc.splitTextToSize(T(t),W-(o.indent||0))){need(4.4);doc.text(ln,M+(o.indent||0),y);y+=4.1}y+=1.2};
+  const KV=(rows,o={})=>{doc.autoTable({startY:y,body:rows.map(r=>r.map(T)),margin:{left:M,right:M},theme:'plain',styles:{font:'helvetica',fontSize:8.6,cellPadding:1.1,textColor:ink},columnStyles:{0:{cellWidth:o.w||62,fontStyle:'bold'}}});y=doc.lastAutoTable.finalY+3};
+  const TB=(head,body,o={})=>{doc.autoTable({startY:y,head:[head.map(T)],body:body.map(r=>r.map(T)),margin:{left:M,right:M},theme:'grid',styles:{font:'helvetica',fontSize:8,cellPadding:1.4,textColor:ink,lineColor:[220,213,200],lineWidth:.2},headStyles:{fillColor:[243,233,207],textColor:ink,fontStyle:'bold'},columnStyles:o.cols||{}});y=doc.lastAutoTable.finalY+4};
+  const Title=(t,sub)=>{doc.setFont('times','bold');doc.setFontSize(9);doc.setTextColor(184,145,47);doc.text('FRAGRANCE HUB GERMANY',210-M,M-4,{align:'right'});doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(...ink);doc.text(T(t),M,y+4);y+=9;if(sub)P(sub,{muted:1})};
+  const Sign=t=>{need(20);y+=10;doc.setDrawColor(...mut);doc.line(M,y,M+80,y);y+=4;P(t,{size:8,muted:1})};
+  const NewPage=()=>{doc.addPage();y=M+2};
+  return{doc,M,W,T,ink,mut,need,H1,H2,P,KV,TB,Title,Sign,NewPage,get y(){return y},set y(v){y=v}}}
+function footer(D,label){const {doc,M}=D;const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...D.mut);doc.text(pdfSafe(label),M,290);doc.text(`${i} / ${n}`,210-M,290,{align:'right'})}}
+async function saveBlob(doc,fn){const blob=doc.output('blob');if(!state.downloads){toast('التنزيل غير متاح في هذا العرض');return}try{await state.downloads.save({filename:fn,data:blob});toast('تم تجهيز الملف')}catch(e){toast(e&&e.code==='declined'?'أُلغي التنزيل':'تعذر التنزيل')}}
+const fnSafe=s=>String(s||'Produkt').replace(/[^\w.-]+/g,'_');
+const dt=(d,lang)=>{const x=d?new Date(d):new Date();return lang==='en'?x.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}):x.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})};
+const nf=(v,d,lang)=>v===null||v===undefined||!isFinite(v)?'—':Number(v).toLocaleString(lang==='en'?'en-GB':'de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const nfs=(v,lang)=>{if(v===null||v===undefined||!isFinite(v))return '—';if(v===0)return '0';const d=v>=1?3:v>=0.01?4:v>=0.0001?6:8;return nf(v,d,lang)};
+
+/* ---------- texts DE / EN ---------- */
+const HT_EN={H225:'Highly flammable liquid and vapour.',H226:'Flammable liquid and vapour.',H302:'Harmful if swallowed.',H304:'May be fatal if swallowed and enters airways.',H315:'Causes skin irritation.',H317:'May cause an allergic skin reaction.',H318:'Causes serious eye damage.',H319:'Causes serious eye irritation.',H332:'Harmful if inhaled.',H336:'May cause drowsiness or dizziness.',H341:'Suspected of causing genetic defects.',H351:'Suspected of causing cancer.',H360:'May damage fertility or the unborn child.',H361:'Suspected of damaging fertility or the unborn child.',H400:'Very toxic to aquatic life.',H410:'Very toxic to aquatic life with long lasting effects.',H411:'Toxic to aquatic life with long lasting effects.',H412:'Harmful to aquatic life with long lasting effects.',H413:'May cause long lasting harmful effects to aquatic life.'};
+const PT_EN={'P201':'Obtain special instructions before use.','P210':'Keep away from heat, hot surfaces, sparks, open flames and other ignition sources. No smoking.','P233':'Keep container tightly closed.','P261':'Avoid breathing vapours.','P272':'Contaminated work clothing should not be allowed out of the workplace.','P273':'Avoid release to the environment.','P280':'Wear protective gloves/eye protection.','P301+P310':'IF SWALLOWED: Immediately call a POISON CENTER/doctor.','P331':'Do NOT induce vomiting.','P302+P352':'IF ON SKIN: Wash with plenty of water.','P303+P361+P353':'IF ON SKIN (or hair): Take off immediately all contaminated clothing. Rinse skin with water or shower.','P305+P351+P338':'IF IN EYES: Rinse cautiously with water for several minutes. Remove contact lenses, if present and easy to do. Continue rinsing.','P308+P313':'IF exposed or concerned: Get medical advice/attention.','P333+P313':'If skin irritation or rash occurs: Get medical advice/attention.','P337+P313':'If eye irritation persists: Get medical advice/attention.','P370+P378':'In case of fire: Use carbon dioxide, dry chemical powder or alcohol-resistant foam to extinguish.','P391':'Collect spillage.','P403+P235':'Store in a well-ventilated place. Keep cool.','P501':'Dispose of contents/container to an approved waste disposal plant.'};
+const PICTO_EN={GHS02:'Flame (GHS02)',GHS05:'Corrosion (GHS05)',GHS07:'Exclamation mark (GHS07)',GHS08:'Health hazard (GHS08)',GHS09:'Environment (GHS09)'};
+const SIGNAL_EN={Gefahr:'Danger',Achtung:'Warning'};
+const hT=(h,l)=>l==='en'?(HT_EN[h]||''):(HT[h]||'');const pT=(x,l)=>l==='en'?(PT_EN[x]||''):(PT[x]||'');const sig=(s,l)=>l==='en'?(SIGNAL_EN[s]||s):s;const picN=(g,l)=>l==='en'?PICTO_EN[g]:PICTO_NAME[g];
+const TX={
+ de:{use:'Parfümkonzentrat (Duftöl in Ethanol) zur gewerblichen Weiterverarbeitung und Abfüllung von kosmetischen Mitteln (Parfum).',useNo:'Direkte Anwendung durch Verbraucher ohne Weiterverarbeitung; Verwendung als Lebensmittel, Arzneimittel oder Spielzeug.',pro:'Nur für gewerbliche Verwender',
+  lab1:'Nur für gewerbliche Verwender – zur Weiterverarbeitung/Abfüllung. Nicht zur direkten Anwendung.',contains:'Enthält',euh208:n=>`EUH208 Enthält ${n}. Kann allergische Reaktionen hervorrufen.`,charge:'Charge',bb:'Mindestens haltbar bis',content:'Inhalt',draft:'ENTWURF – vor Weitergabe durch eine fachkundige Person zu prüfen'},
+ en:{use:'Perfume concentrate (fragrance oil in ethanol) for professional further processing and filling of cosmetic products (perfume).',useNo:'Direct use by consumers without further processing; use as food, medicinal product or toy.',pro:'For professional users only',
+  lab1:'For professional users only – for further processing/filling. Not for direct application.',contains:'Contains',euh208:n=>`EUH208 Contains ${n}. May produce an allergic reaction.`,charge:'Batch',bb:'Best before',content:'Content',draft:'DRAFT – to be checked by a competent person before distribution'}};
+
+/* ---------- SDS (REACH Annex II) ---------- */
+async function bSds(D,p,lang){const s=state.settings,c=compute(p,s),k=c.cls,A=s.alcohol||{};const {doc,M,W}=D;const E=lang==='en',t=TX[lang];const ver=p.sdsVersion||'1.0';
+  const ifH=(h,yes,no)=>k.H.includes(h)?yes:no;
+  D.Title(E?'Safety Data Sheet':'Sicherheitsdatenblatt',E?'according to Regulation (EC) No 1907/2006 (REACH), Annex II, as amended by Regulation (EU) 2020/878':'gemäß Verordnung (EG) Nr. 1907/2006 (REACH), Anhang II, in der Fassung der Verordnung (EU) 2020/878');
+  D.KV([[E?'Trade name':'Handelsname',p.name||'—'],[E?'Version':'Version',ver],[E?'Revision date':'Überarbeitet am',dt(p.sdsDate||null,lang)],[E?'Print date':'Druckdatum',dt(null,lang)]],{w:40});
+  if(!p.sdsApproved){doc.setFillColor(251,240,212);doc.rect(M,D.y,W,8,'F');doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(164,86,10);doc.text(pdfSafe(t.draft),M+3,D.y+5.3);D.y+=12}
+  D.H1(E?'SECTION 1: Identification of the substance/mixture and of the company/undertaking':'ABSCHNITT 1: Bezeichnung des Stoffs bzw. des Gemischs und des Unternehmens');
+  D.H2(E?'1.1 Product identifier':'1.1 Produktidentifikator');D.KV([[E?'Trade name':'Handelsname',p.name],[E?'Article number':'Artikelnummer',p.code||'—'],['UFI',p.ufi||'—']]);
+  D.H2(E?'1.2 Relevant identified uses of the substance or mixture and uses advised against':'1.2 Relevante identifizierte Verwendungen und Verwendungen, von denen abgeraten wird');
+  D.KV([[E?'Identified use':'Identifizierte Verwendung',t.use],[E?'Uses advised against':'Verwendungen, von denen abgeraten wird',t.useNo],[E?'User group':'Verwendergruppe',t.pro]]);
+  D.H2(E?'1.3 Details of the supplier of the safety data sheet':'1.3 Einzelheiten zum Lieferanten, der das Sicherheitsdatenblatt bereitstellt');
+  D.P(`${s.company}\n${s.street}\n${s.city}, ${E?(s.country==='Deutschland'?'Germany':s.country):s.country}\nTel.: ${s.phone}\nE-Mail: ${s.email}`);
+  D.P(`${E?'Contact for SDS questions':'Auskunftgebender Bereich'}: ${s.sdsAuthor} (${s.email})`);
+  D.H2(E?'1.4 Emergency telephone number':'1.4 Notrufnummer');D.P(s.emergency);
+  D.H1(E?'SECTION 2: Hazards identification':'ABSCHNITT 2: Mögliche Gefahren');
+  D.H2(E?'2.1 Classification of the substance or mixture (Regulation (EC) No 1272/2008)':'2.1 Einstufung des Stoffs oder Gemischs (Verordnung (EG) Nr. 1272/2008)');
+  if(k.H.length)D.TB([E?'Hazard class and category':'Gefahrenklasse und -kategorie',E?'Hazard statement':'Gefahrenhinweis'],k.H.map(h=>[HCLASS[h]||'',`${h} ${hT(h,lang)}`]));else D.P(E?'Not classified.':'Nicht eingestuft.');
+  D.H2(E?'2.2 Label elements':'2.2 Kennzeichnungselemente');
+  if(k.pic.length){D.need(22);let x=M;for(const g of k.pic){doc.addImage(await pictoDataUrl(g),'PNG',x,D.y,18,18);x+=21}D.y+=21;D.P((E?'Hazard pictograms: ':'Gefahrenpiktogramme: ')+k.pic.map(g=>picN(g,lang)).join(', '),{size:8})}
+  D.KV([[E?'Signal word':'Signalwort',sig(k.signal,lang)||'—'],[E?'Hazard statements':'Gefahrenhinweise',k.labelH.map(h=>`${h} ${hT(h,lang)}`).join('\n')||'—'],[E?'Precautionary statements':'Sicherheitshinweise',k.labelP.map(x=>`${x} ${pT(x,lang)}`).join('\n')||'—'],
+    ...(k.sensNames.length?[[E?'Hazard-determining components':'Gefahrbestimmende Komponenten',`${t.contains}: ${k.sensNames.join(', ')}`]]:[]),...(k.euh208.length?[[E?'Supplemental information':'Ergänzende Hinweise',t.euh208(k.euh208.join(', '))]]:[]),['UFI',p.ufi||'—']]);
+  D.H2(E?'2.3 Other hazards':'2.3 Sonstige Gefahren');D.P(E?'Vapours may form explosive mixtures with air. According to supplier information, the mixture contains no PBT/vPvB substances and no substances with endocrine disrupting properties >= 0.1 %.':'Dämpfe können mit Luft explosionsfähige Gemische bilden. Laut Lieferantenangaben enthält das Gemisch keine PBT-/vPvB-Stoffe und keine Stoffe mit endokrinschädlichen Eigenschaften >= 0,1 %.');
+  D.H1(E?'SECTION 3: Composition/information on ingredients':'ABSCHNITT 3: Zusammensetzung/Angaben zu Bestandteilen');D.H2(E?'3.2 Mixtures':'3.2 Gemische');
+  D.P(E?`Description: solution of a fragrance oil (${nf(c.oil,1,lang)} % w/w) in denatured ethanol.`:`Beschreibung: Lösung eines Parfümöls (${nf(c.oil,1,lang)} % w/w) in vergälltem Ethanol.`);
+  D.TB([E?'Substance name':'Stoffname',E?'CAS No.':'CAS-Nr.',E?'Content [% w/w]':'Gehalt [% w/w]',E?'Classification (Reg. (EC) 1272/2008)':'Einstufung (VO (EG) 1272/2008)'],c.ings.map(i=>[i.name,i.cas||'—',i.src==='oil'?`${nfs(i.min,lang)} – ${nfs(i.max,lang)}`:nfs(i.max,lang),i.hazard||'—']),{cols:{0:{cellWidth:56},1:{cellWidth:22},2:{cellWidth:26}}});
+  D.P(E?'Full text of H statements: see section 16. Contents of fragrance components calculated from supplier data (range × fragrance oil content).':'Wortlaut der H-Sätze: siehe Abschnitt 16. Gehalte der Duftstoffbestandteile errechnet aus den Lieferantenangaben (Bereich × Duftölanteil).',{size:7.8,muted:1});
+  D.H1(E?'SECTION 4: First aid measures':'ABSCHNITT 4: Erste-Hilfe-Maßnahmen');
+  D.KV(E?[['General advice','Remove affected person from the danger area. If symptoms persist, consult a doctor and show this safety data sheet.'],['After inhalation','Provide fresh air. Consult a doctor if symptoms occur.'],['After skin contact','Remove contaminated clothing. Wash skin with plenty of water and soap. If skin irritation or rash occurs, consult a doctor.'],['After eye contact','Rinse immediately with water for several minutes with the eyelids held open. Remove contact lenses. Consult an ophthalmologist.'],['After ingestion',ifH('H304','Do NOT induce vomiting (aspiration hazard). Call a doctor immediately.','Rinse mouth. Do not induce vomiting. Call a doctor.')],['Most important symptoms','Eye irritation; allergic skin reactions in sensitised persons; drowsiness and dizziness at high vapour concentrations.']]
+   :[['Allgemeine Hinweise','Betroffene aus dem Gefahrenbereich bringen. Bei anhaltenden Beschwerden Arzt aufsuchen und dieses Datenblatt vorzeigen.'],['Nach Einatmen','Für Frischluft sorgen. Bei Beschwerden Arzt hinzuziehen.'],['Nach Hautkontakt','Kontaminierte Kleidung ausziehen. Haut mit viel Wasser und Seife waschen. Bei Hautreizung oder -ausschlag Arzt aufsuchen.'],['Nach Augenkontakt','Sofort mehrere Minuten bei geöffnetem Lidspalt mit Wasser spülen. Kontaktlinsen entfernen. Augenarzt hinzuziehen.'],['Nach Verschlucken',ifH('H304','KEIN Erbrechen herbeiführen (Aspirationsgefahr). Sofort Arzt anrufen.','Mund ausspülen. Kein Erbrechen herbeiführen. Arzt anrufen.')],['Wichtigste Symptome','Augenreizung; bei sensibilisierten Personen allergische Hautreaktionen; in hohen Dampfkonzentrationen Schläfrigkeit, Benommenheit.']]);
+  D.H1(E?'SECTION 5: Firefighting measures':'ABSCHNITT 5: Maßnahmen zur Brandbekämpfung');
+  D.KV(E?[['Suitable extinguishing media','Alcohol-resistant foam, carbon dioxide, dry chemical powder, water spray.'],['Unsuitable extinguishing media','Full water jet.'],['Special hazards','Highly flammable. Vapours are heavier than air and may form explosive mixtures with air; flashback possible. In case of fire: carbon monoxide and carbon dioxide.'],['Advice for firefighters','Wear self-contained breathing apparatus. Cool endangered containers with water spray. Collect contaminated fire-fighting water separately.']]
+   :[['Geeignete Löschmittel','Alkoholbeständiger Schaum, Kohlendioxid, Löschpulver, Wassersprühstrahl.'],['Ungeeignete Löschmittel','Wasservollstrahl.'],['Besondere Gefahren','Leicht entzündbar. Dämpfe sind schwerer als Luft und können mit Luft explosionsfähige Gemische bilden; Rückzündung möglich. Im Brandfall Kohlenmonoxid und Kohlendioxid.'],['Hinweise für die Brandbekämpfung','Umgebungsluftunabhängiges Atemschutzgerät tragen. Gefährdete Behälter mit Wassersprühstrahl kühlen. Löschwasser getrennt sammeln.']]);
+  D.H1(E?'SECTION 6: Accidental release measures':'ABSCHNITT 6: Maßnahmen bei unbeabsichtigter Freisetzung');
+  D.KV(E?[['Personal precautions','Remove ignition sources. Ensure adequate ventilation. Avoid contact with skin and eyes. Wear protective equipment (section 8).'],['Environmental precautions','Do not allow to enter drains, surface water or groundwater.'],['Methods for cleaning up','Absorb with liquid-binding material (sand, diatomaceous earth, universal binder) and dispose of according to section 13. Use non-sparking tools.']]
+   :[['Personenbezogene Vorsichtsmaßnahmen','Zündquellen fernhalten. Für ausreichende Lüftung sorgen. Kontakt mit Haut und Augen vermeiden. Schutzausrüstung tragen (Abschnitt 8).'],['Umweltschutzmaßnahmen','Nicht in Kanalisation, Oberflächen- oder Grundwasser gelangen lassen.'],['Reinigung','Mit flüssigkeitsbindendem Material (Sand, Kieselgur, Universalbinder) aufnehmen und nach Abschnitt 13 entsorgen. Funkenfreies Werkzeug verwenden.']]);
+  D.H1(E?'SECTION 7: Handling and storage':'ABSCHNITT 7: Handhabung und Lagerung');
+  D.KV(E?[['Safe handling','Use only in well-ventilated areas. Keep away from ignition sources – no smoking. Take precautionary measures against static discharge (earthing when decanting). Avoid skin contact. Do not eat, drink or smoke at the workplace.'],['Storage','Keep container tightly closed in a cool, well-ventilated place. Protect from heat and direct sunlight. Storage of flammable liquids according to national regulations (DE: TRGS 510).'],['Storage class (TRGS 510, DE)','3 – Flammable liquids'],['Specific end uses',t.use]]
+   :[['Sichere Handhabung','Nur in gut belüfteten Bereichen verwenden. Von Zündquellen fernhalten – nicht rauchen. Maßnahmen gegen elektrostatische Aufladung treffen (Erdung beim Umfüllen). Hautkontakt vermeiden. Am Arbeitsplatz nicht essen, trinken, rauchen.'],['Lagerung','Behälter dicht verschlossen an einem kühlen, gut belüfteten Ort lagern. Vor Hitze und direkter Sonneneinstrahlung schützen. Lagerung entzündbarer Flüssigkeiten nach TRGS 510.'],['Lagerklasse (TRGS 510)','3 – Entzündbare Flüssigkeiten'],['Spezifische Endanwendungen',t.use]]);
+  D.H1(E?'SECTION 8: Exposure controls/personal protection':'ABSCHNITT 8: Begrenzung und Überwachung der Exposition/Persönliche Schutzausrüstungen');
+  D.TB([E?'Substance':'Stoff',E?'CAS No.':'CAS-Nr.',E?'Limit value':'Grenzwert',E?'Source':'Quelle'],[['Ethanol','64-17-5',E?'OEL 200 ml/m³ (380 mg/m³); peak limitation 4(II)':'AGW 200 ml/m³ (380 mg/m³); Spitzenbegrenzung 4(II)','TRGS 900 (DE)']]);
+  D.KV(E?[['Engineering controls','Good ventilation or local exhaust during decanting.'],['Eye protection','Tightly fitting safety goggles (EN 166).'],['Hand protection','Chemical protective gloves made of nitrile rubber (EN ISO 374), thickness >= 0.4 mm; ask the manufacturer for breakthrough time.'],['Body protection','Work clothing; apron if splashing is likely.'],['Respiratory protection','Not required with adequate ventilation; if the OEL is exceeded, filter type A (brown).']]
+   :[['Technische Maßnahmen','Gute Raumlüftung bzw. örtliche Absaugung beim Umfüllen.'],['Augenschutz','Dicht schließende Schutzbrille (EN 166).'],['Handschutz','Chemikalienschutzhandschuhe aus Nitrilkautschuk (EN ISO 374), Schichtdicke >= 0,4 mm; Durchbruchzeit beim Hersteller erfragen.'],['Körperschutz','Arbeitskleidung; bei Spritzgefahr Schürze.'],['Atemschutz','Bei ausreichender Lüftung nicht erforderlich; bei Überschreitung des AGW Filter A (braun).']]);
+  D.H1(E?'SECTION 9: Physical and chemical properties':'ABSCHNITT 9: Physikalische und chemische Eigenschaften');
+  const fl=nf(num(A.flash)||13,0,lang);
+  D.KV(E?[['Physical state','liquid'],['Colour/appearance',p.appearanceEn||p.appearance||'clear'],['Odour',p.odorEn||p.odor||'perfume-like'],['Melting point','not determined'],['Initial boiling point','approx. 78 °C (ethanol)'],['Flammability','highly flammable liquid'],['Explosion limits','3.1 – 27.7 vol.-% (ethanol)'],['Flash point',`< 23 °C (ethanol: approx. ${fl} °C; mixture calculated, measurement recommended)`],['Auto-ignition temperature','approx. 400 °C (ethanol)'],['pH','not applicable'],['Kinematic viscosity','< 20.5 mm²/s at 40 °C (estimated)'],['Solubility in water','partly miscible'],['Density (20 °C)',`${nf(c.density,3,lang)} g/cm³${c.densityEst?' (calculated)':''}`],['Vapour pressure','approx. 58 hPa at 20 °C (ethanol)'],['VOC content',`approx. ${nf(c.eth,1,lang)} % (ethanol)`]]
+   :[['Aggregatzustand','flüssig'],['Farbe/Aussehen',p.appearance||'klar'],['Geruch',p.odor||'parfümartig'],['Schmelzpunkt','nicht bestimmt'],['Siedebeginn','ca. 78 °C (Ethanol)'],['Entzündbarkeit','leicht entzündbare Flüssigkeit'],['Explosionsgrenzen','3,1 – 27,7 Vol.-% (Ethanol)'],['Flammpunkt',`< 23 °C (Ethanol: ca. ${fl} °C; Gemisch berechnet, Messung empfohlen)`],['Zündtemperatur','ca. 400 °C (Ethanol)'],['pH-Wert','nicht anwendbar'],['Kinematische Viskosität','< 20,5 mm²/s bei 40 °C (geschätzt)'],['Löslichkeit in Wasser','teilweise mischbar'],['Dichte (20 °C)',`${nf(c.density,3,lang)} g/cm³${c.densityEst?' (berechnet)':''}`],['Dampfdruck','ca. 58 hPa bei 20 °C (Ethanol)'],['VOC-Gehalt',`ca. ${nf(c.eth,1,lang)} % (Ethanol)`]]);
+  D.H1(E?'SECTION 10: Stability and reactivity':'ABSCHNITT 10: Stabilität und Reaktivität');
+  D.KV(E?[['Reactivity / chemical stability','Stable under normal storage conditions.'],['Hazardous reactions','With strong oxidising agents. Vapours form explosive mixtures with air.'],['Conditions to avoid','Heat, sparks, open flames, electrostatic discharge.'],['Incompatible materials','Strong oxidising agents, alkali metals.'],['Hazardous decomposition products','In case of fire: carbon monoxide, carbon dioxide.']]
+   :[['Reaktivität / Chemische Stabilität','Unter normalen Lagerbedingungen stabil.'],['Gefährliche Reaktionen','Mit starken Oxidationsmitteln. Dämpfe bilden mit Luft explosionsfähige Gemische.'],['Zu vermeidende Bedingungen','Hitze, Funken, offene Flammen, elektrostatische Entladung.'],['Unverträgliche Materialien','Starke Oxidationsmittel, Alkalimetalle.'],['Gefährliche Zersetzungsprodukte','Bei Brand: Kohlenmonoxid, Kohlendioxid.']]);
+  D.H1(E?'SECTION 11: Toxicological information':'ABSCHNITT 11: Toxikologische Angaben');
+  D.P(E?'Classification by the calculation method of Regulation (EC) No 1272/2008 based on supplier data. No test data are available for the mixture.':'Die Einstufung erfolgte nach dem Berechnungsverfahren der Verordnung (EG) Nr. 1272/2008 auf Basis der Lieferantenangaben. Prüfdaten für das Gemisch liegen nicht vor.');
+  const nm=E?'Based on available data, the classification criteria are not met.':'Auf Grundlage der verfügbaren Daten sind die Einstufungskriterien nicht erfüllt.';
+  D.KV([[E?'Acute toxicity':'Akute Toxizität',nm],[E?'Skin corrosion/irritation':'Ätz-/Reizwirkung auf die Haut',ifH('H315',hT('H315',lang),nm)],[E?'Serious eye damage/irritation':'Schwere Augenschädigung/-reizung',k.H.includes('H318')?hT('H318',lang):ifH('H319',hT('H319',lang),nm)],
+    [E?'Skin sensitisation':'Sensibilisierung der Haut',k.H.includes('H317')?`${hT('H317',lang)} ${t.contains}: ${k.sensNames.join(', ')}`:k.euh208.length?(E?'Contains sensitising substances below the classification limit (EUH208).':'Enthält sensibilisierende Stoffe unterhalb der Einstufungsgrenze (EUH208).'):nm],
+    [E?'Germ cell mutagenicity / carcinogenicity':'Keimzellmutagenität / Karzinogenität',k.H.filter(h=>h==='H341'||h==='H351').map(h=>hT(h,lang)).join(' ')||nm],
+    [E?'Reproductive toxicity':'Reproduktionstoxizität',k.H.includes('H360')?hT('H360',lang):k.H.includes('H361')?hT('H361',lang):(k.r2low.length?`${nm} ${E?'Contains Repr. 2 substances between 0.3 and 3 %':'Enthält Repr. 2-Stoffe zwischen 0,3 und 3 %'}: ${k.r2low.map(i=>i.name).join(', ')}.`:nm)],[E?'Aspiration hazard':'Aspirationsgefahr',ifH('H304',hT('H304',lang),nm)]]);
+  D.H1(E?'SECTION 12: Ecological information':'ABSCHNITT 12: Umweltbezogene Angaben');
+  D.KV(E?[['Toxicity',k.H.filter(h=>/H4\d\d/.test(h)).map(h=>hT(h,lang)).join(' ')||'Classification criteria not met (calculation method).'],['Persistence and degradability','Ethanol is readily biodegradable. For fragrance components see supplier information.'],['Bioaccumulative potential','No data for the mixture.'],['Mobility in soil','No data for the mixture.'],['PBT/vPvB assessment','According to supplier information, no PBT/vPvB substances.'],['Other adverse effects','Do not allow to enter water bodies, sewage or soil.']]
+   :[['Toxizität',k.H.filter(h=>/H4\d\d/.test(h)).map(h=>hT(h,lang)).join(' ')||'Einstufungskriterien nicht erfüllt (Berechnungsverfahren).'],['Persistenz und Abbaubarkeit','Ethanol ist leicht biologisch abbaubar. Für die Duftstoffbestandteile siehe Lieferantenangaben.'],['Bioakkumulationspotenzial','Keine Daten für das Gemisch.'],['Mobilität im Boden','Keine Daten für das Gemisch.'],['PBT-/vPvB-Beurteilung','Laut Lieferantenangaben keine PBT-/vPvB-Stoffe enthalten.'],['Andere schädliche Wirkungen','Nicht in Gewässer, Abwasser oder Erdreich gelangen lassen.']]);
+  D.H1(E?'SECTION 13: Disposal considerations':'ABSCHNITT 13: Hinweise zur Entsorgung');
+  D.KV(E?[['Product','Dispose of via an approved waste disposal company in accordance with local regulations. Determine the waste code (EWC) together with the disposal company.'],['Packaging','Recycle completely emptied packaging; dispose of uncleaned packaging like the product.']]:[['Produkt','Unter Beachtung der behördlichen Vorschriften einer zugelassenen Entsorgung zuführen. Abfallschlüssel nach AVV in Abstimmung mit dem Entsorger festlegen.'],['Verpackung','Restentleerte Verpackungen dem Recycling zuführen; ungereinigte Verpackungen wie das Produkt entsorgen.']]);
+  D.H1(E?'SECTION 14: Transport information':'ABSCHNITT 14: Angaben zum Transport');
+  const env=k.envMark;D.TB(['','ADR/RID','IMDG','IATA'],[[E?'UN number':'UN-Nummer','UN 1266','UN 1266','UN 1266'],[E?'Proper shipping name':'Ordnungsgemäße Versandbezeichnung',E?'PERFUMERY PRODUCTS':'PARFÜMERIEERZEUGNISSE','PERFUMERY PRODUCTS','PERFUMERY PRODUCTS'],[E?'Transport hazard class':'Transportgefahrenklasse','3','3','3'],[E?'Packing group':'Verpackungsgruppe','II','II','II'],[E?'Environmental hazards':'Umweltgefahren',env?(E?'yes':'ja'):(E?'no':'nein'),env?'Marine pollutant':(E?'no':'nein'),env?(E?'yes':'ja'):(E?'no':'nein')]]);
+  D.KV([[E?'Limited quantities (LQ)':'Begrenzte Mengen (LQ)',E?'ADR: 5 L per inner packaging':'ADR: 5 L je Innenverpackung'],[E?'Tunnel restriction code':'Tunnelbeschränkungscode','D/E']]);
+  D.H1(E?'SECTION 15: Regulatory information':'ABSCHNITT 15: Rechtsvorschriften');
+  const wgk=[A.wgk,p.sds.wgk].map(x=>num(x)).filter(x=>x!==null);const wg=wgk.length?Math.max(...wgk):2;
+  D.KV(E?[['Water hazard class (DE, AwSV)',`WGK ${wg} (self-classification, conservative)`],['Storage class (DE, TRGS 510)','3'],['Seveso III Directive 2012/18/EU','Annex I, Part 1, P5c (flammable liquids)'],['VOC','approx. '+nf(c.eth,1,lang)+' %'],['Further regulations','Regulation (EC) No 1272/2008 (CLP), Regulation (EC) No 1907/2006 (REACH); national provisions on storage and workplace safety.'],['Chemical safety assessment','Not carried out for this mixture.']]
+   :[['Wassergefährdungsklasse (AwSV)',`WGK ${wg} (Selbsteinstufung, konservativ nach höchster Komponente)`],['Lagerklasse (TRGS 510)','3'],['Störfallverordnung','Anhang I, Nr. P5c (entzündbare Flüssigkeiten)'],['VOC','ca. '+nf(c.eth,1,lang)+' %'],['Sonstige Vorschriften','TRGS 510, TRGS 900, Verordnung (EG) Nr. 1272/2008, Verordnung (EG) Nr. 1907/2006'],['Stoffsicherheitsbeurteilung','Für dieses Gemisch nicht durchgeführt.']]);
+  D.H1(E?'SECTION 16: Other information':'ABSCHNITT 16: Sonstige Angaben');
+  const allH=[...new Set([...k.H,...c.ings.flatMap(i=>hcodes(i.hazard))])].sort();
+  D.P(E?'Full text of H statements (sections 2 and 3):':'Wortlaut der H-Sätze (Abschnitte 2 und 3):',{bold:1});allH.forEach(h=>D.P(`${h} ${hT(h,lang)}`,{size:8}));
+  D.P(E?'Abbreviations: OEL – occupational exposure limit; CLP – Regulation (EC) No 1272/2008; LQ – limited quantity; UFI – unique formula identifier; WGK – German water hazard class.':'Abkürzungen: AGW – Arbeitsplatzgrenzwert; CLP – Verordnung (EG) Nr. 1272/2008; LQ – Limited Quantity; UFI – Unique Formula Identifier; WGK – Wassergefährdungsklasse.',{size:8});
+  D.P(E?`Basis: safety data sheets and specifications of the raw material suppliers (fragrance oil: ${p.sds.date||'—'}; ethanol). Classification by calculation method according to Art. 9 and Annex I of Regulation (EC) No 1272/2008.`:`Grundlage: Sicherheitsdatenblätter und Spezifikationen der Rohstofflieferanten (Duftöl: Stand ${p.sds.date||'—'}; Ethanol). Einstufung nach Berechnungsverfahren gemäß Art. 9 und Anhang I der Verordnung (EG) Nr. 1272/2008.`,{size:8});
+  D.P(E?`Prepared by: ${s.sdsAuthor}${p.approvedBy?' · checked by: '+p.approvedBy:''}. The information is based on our present state of knowledge and describes the product with regard to safety requirements; it does not guarantee any properties.`:`Erstellt von: ${s.sdsAuthor}${p.approvedBy?' · geprüft von: '+p.approvedBy:''}. Die Angaben stützen sich auf den heutigen Stand unserer Kenntnisse und beschreiben das Produkt im Hinblick auf Sicherheitserfordernisse; sie sichern keine Eigenschaften zu.`,{size:8,muted:1})}
+
+/* ---------- IFRA declaration ---------- */
+async function bIfra(D,p,lang){const s=state.settings,c=compute(p,s);const E=lang==='en';
+  D.Title(E?'IFRA Declaration of Conformity':'IFRA-Konformitätserklärung',E?'for a diluted perfume concentrate (fragrance oil in ethanol)':'für ein verdünntes Parfümkonzentrat (Duftöl in Ethanol)');
+  D.KV([[E?'Product':'Produkt',p.name],[E?'Article number':'Artikelnummer',p.code||'—'],[E?'Fragrance oil content':'Duftölanteil',`${nf(c.oil,2,lang)} % (w/w)`],[E?'Solvent':'Lösungsmittel',E?'Ethanol (denatured) – no IFRA-relevant constituents':'Ethanol (vergällt) – keine IFRA-relevanten Bestandteile'],[E?'Basis':'Grundlage',E?`IFRA certificate of conformity of the fragrance oil manufacturer, ${p.ifra.amendment||'—'}th Amendment, dated ${p.ifra.date||'—'}`:`IFRA-Konformitätszertifikat des Duftölherstellers, ${p.ifra.amendment||'—'}. Amendment, Datum ${p.ifra.date||'—'}`],[E?'Issuer':'Aussteller',`${s.company}, ${s.street}, ${s.city}`]]);
+  D.P(E?'We confirm that the above product contains only the stated fragrance oil as fragrance ingredient. The maximum concentrations of the fragrance oil according to the manufacturer\'s certificate have been converted to the diluted product: maximum product concentration = maximum fragrance oil concentration ÷ fragrance oil content × 100 (maximum 100 %).':'Wir bestätigen, dass das oben genannte Produkt ausschließlich das genannte Duftöl als duftgebenden Bestandteil enthält. Die Höchstkonzentrationen des Duftöls laut Zertifikat des Herstellers wurden auf das verdünnte Produkt umgerechnet: Höchstkonzentration Produkt = Höchstkonzentration Duftöl ÷ Duftölanteil × 100 (maximal 100 %).');
+  D.TB([E?'IFRA category':'IFRA-Kategorie',E?'Max. fragrance oil in finished product':'Max. Duftöl im Fertigerzeugnis',E?'Max. of this product in finished product':'Max. dieses Produkts im Fertigerzeugnis'],c.ifraRows.filter(r=>r.raw!==undefined&&r.raw!=='').map(r=>[`${E?'Category':'Kategorie'} ${r.k}`,r.lim!==null?nf(r.lim,3,lang)+' %':String(r.raw),r.mix!==null?nf(r.mix,2,lang)+' %':'—']),{cols:{1:{halign:'right'},2:{halign:'right'}}});
+  D.P(E?'Category 4 = hydroalcoholic perfumes (eau de parfum, eau de toilette, extrait). Compliance of the finished product is the responsibility of the manufacturer of the finished product.':'Kategorie 4 = hydroalkoholische Parfums (Eau de Parfum, Eau de Toilette, Extrait). Die Konformität des Fertigerzeugnisses liegt in der Verantwortung des Herstellers des Fertigerzeugnisses.',{size:8,muted:1});
+  D.Sign(`${s.city.replace(/^\d+\s*/,'')}, ${dt(null,lang)} – ${s.company}`)}
+
+/* ---------- allergen declaration ---------- */
+async function bAllergen(D,p,lang){const s=state.settings,c=compute(p,s);const E=lang==='en';
+  D.Title(E?'Allergen Declaration':'Allergenerklärung',E?'Fragrance allergens according to Annex III of Regulation (EC) No 1223/2009 as amended by Regulation (EU) 2023/1545':'Duftstoffallergene gemäß Anhang III der Verordnung (EG) Nr. 1223/2009 in der Fassung der Verordnung (EU) 2023/1545');
+  D.KV([[E?'Product':'Produkt',p.name],[E?'Article number':'Artikelnummer',p.code||'—'],[E?'Fragrance oil content':'Duftölanteil',`${nf(c.oil,2,lang)} % (w/w)`],[E?'Basis':'Grundlage',E?`Allergen declaration of the fragrance oil manufacturer dated ${p.allergen.date||'—'}${p.allergen.reg2023?' (extended list 2023/1545)':''}`:`Allergenerklärung des Duftölherstellers vom ${p.allergen.date||'—'}${p.allergen.reg2023?' (erweiterte Liste 2023/1545)':''}`]]);
+  const rows=c.allergens.filter(a=>a.prod>0).sort((a,b)=>b.prod-a.prod);
+  D.TB([E?'Substance':'Stoff',E?'CAS No.':'CAS-Nr.',E?'% in product':'% im Produkt'],rows.map(a=>[a.name,a.cas||'',nfs(a.prod,lang)]),{cols:{2:{halign:'right'}}});
+  D.P(E?`Annex III substances not listed: not contained or below the limit of determination (${c.allergens.length-rows.length} substances).`:`Nicht aufgeführte Stoffe des Anhangs III: nicht enthalten bzw. unterhalb der Bestimmungsgrenze (${c.allergens.length-rows.length} Stoffe).`,{size:8,muted:1});
+  D.P(E?'Note for the manufacturer of the finished product: concentration in finished product = % in product × use concentration ÷ 100. Labelling required above 0.001 % in leave-on and above 0.01 % in rinse-off products.':'Hinweis für den Hersteller des Fertigerzeugnisses: Konzentration im Fertigerzeugnis = % im Produkt × Einsatzkonzentration ÷ 100. Kennzeichnungspflicht bei Leave-on-Produkten ab 0,001 %, bei Rinse-off-Produkten ab 0,01 %.',{size:8.5});
+  D.Sign(`${dt(null,lang)} – ${s.company}`)}
+
+/* ---------- single documents and the document pack ---------- */
+async function pdfDoc(p,kind,lang){if(!window.jspdf){toast('مكتبة PDF لم تُحمّل — حدّث الصفحة');return}const D=newDoc();const s=state.settings;
+  const f={sds:bSds,ifra:bIfra,all:bAllergen}[kind];await f(D,p,lang);
+  const nm={sds:lang==='en'?'SDS':'SDB',ifra:'IFRA',all:lang==='en'?'Allergens':'Allergene'}[kind];
+  footer(D,`${nm} ${p.name} · ${lang==='en'?'Version':'Version'} ${p.sdsVersion||'1.0'} · ${dt(null,lang)} · ${s.company}`);
+  await saveBlob(D.doc,`${nm}_${fnSafe(p.name)}_${lang.toUpperCase()}.pdf`)}
+async function packDoc(p,lang){const D=newDoc();await bSds(D,p,lang);D.NewPage();await bIfra(D,p,lang);D.NewPage();await bAllergen(D,p,lang);
+  footer(D,`${p.name} · ${lang==='en'?'SDS / IFRA / Allergens':'SDB / IFRA / Allergene'} · ${p.sdsVersion||'1.0'} · ${state.settings.company}`);return D.doc}
+
+/* ---------- label (per batch: Charge + best-before printed) ---------- */
+async function pdfLabel(p,b,lang){lang=lang||'de';const s=state.settings,c=compute(p,s),k=c.cls,t=TX[lang];const Wl=num(s.labelW)||105,Hl=num(s.labelH)||148;
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:[Wl,Hl],orientation:Wl>Hl?'landscape':'portrait'});const m=4,w=Wl-2*m;let y=m+4;const T=pdfSafe;
+  doc.setDrawColor(0);doc.setLineWidth(.3);doc.rect(1,1,Wl-2,Hl-2);
+  doc.setFont('helvetica','bold');doc.setFontSize(Math.min(12,Wl/9));doc.setTextColor(0);for(const ln of doc.splitTextToSize(T(p.name||''),w)){doc.text(ln,m,y);y+=4.6}
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.text(T(`${p.code||''}  ·  ${t.content}: ${p.volumeL||1} L (${nf(c.massKg,3,lang)} kg)`),m,y);y+=3.8;
+  doc.setFont('helvetica','bold');doc.text(doc.splitTextToSize(T(t.lab1),w),m,y);y+=k.pic.length?6.5:8;
+  if(k.pic.length){const sz=Math.min(18,(w-(k.pic.length-1)*2)/k.pic.length);let x=m;for(const g of k.pic){doc.addImage(await pictoDataUrl(g),'PNG',x,y,sz,sz);x+=sz+2}y+=sz+2}
+  if(k.signal){doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(T(sig(k.signal,lang)),m,y+1);y+=5}
+  const body=[...k.labelH.map(h=>`${h} ${hT(h,lang)}`),...(k.euh208.length?[t.euh208(k.euh208.join(', '))]:[]),...(k.sensNames.length?[`${t.contains}: ${k.sensNames.join(', ')}`]:[]),...k.labelP.map(x=>`${x} ${pT(x,lang)}`)].join('\n');
+  const foot=[`UFI: ${p.ufi||'—'}`,`${t.charge}: ${b?b.batchNo:'__________'}${b&&b.bestBefore?`   ${t.bb}: ${dt(b.bestBefore,lang)}`:''}`,`${s.company} · ${s.street} · ${s.city} · ${s.phone}`];
+  const avail=Hl-m-y-foot.length*3.6-2;let fs=7.2,lines;do{doc.setFontSize(fs);lines=doc.splitTextToSize(T(body),w);fs-=.2}while(lines.length*fs*.42>avail&&fs>4.4);
+  doc.setFont('helvetica','normal');doc.setFontSize(fs+.2);for(const ln of lines){doc.text(ln,m,y);y+=(fs+.2)*.42}
+  let fy=Hl-m-foot.length*3.6+2.6;doc.setFontSize(7);foot.forEach((x,i)=>{doc.setFont('helvetica',i<2?'bold':'normal');doc.text(T(x),m,fy,{maxWidth:w});fy+=3.6});
+  await saveBlob(doc,`Etikett_${fnSafe(p.name)}_${b?fnSafe(b.batchNo):'Muster'}_${lang.toUpperCase()}.pdf`)}
+
+/* ---------- certificate of analysis (per batch) ---------- */
+async function pdfCoa(p,b,lang){if(!b)return;const s=state.settings;const D=newDoc();const E=lang==='en';const yn=v=>v?(E?'conforms':'konform'):(E?'not checked':'nicht geprüft');
+  D.Title(E?'Certificate of Analysis':'Analysenzertifikat');
+  D.KV([[E?'Product':'Produkt',p.name],[E?'Article number':'Artikelnummer',p.code||'—'],[E?'Batch':'Charge',b.batchNo],[E?'Production date':'Herstelldatum',dt(b.createdAt,lang)],[E?'Best before':'Mindestens haltbar bis',b.bestBefore?dt(b.bestBefore,lang):'—'],[E?'Batch size':'Chargengröße',`${nf(num(b.volumeL),2,lang)} L`],['UFI',p.ufi||'—'],[E?'Manufacturer':'Hersteller',`${s.company}, ${s.street}, ${s.city}`]]);
+  D.TB([E?'Parameter':'Merkmal',E?'Specification':'Spezifikation',E?'Result':'Ergebnis'],[[E?'Appearance':'Aussehen',(E?p.appearanceEn:'')||p.appearance||'—',yn(b.chkAppearance)],[E?'Odour':'Geruch',E?'corresponds to reference sample':'entspricht Standardmuster',yn(b.chkOdor)],[E?'Density (20 °C)':'Dichte (20 °C)',`${nf(num(b.density),3,lang)} g/ml ± 0.010`,b.densityMeas?`${nf(num(b.densityMeas),3,lang)} g/ml`:'—'],[E?'Fragrance oil content':'Duftölanteil',`${nf(num(b.oilPct),2,lang)} % (w/w)`,b.oilActualG&&b.alcActualG?`${nf(num(b.oilActualG)/(num(b.oilActualG)+num(b.alcActualG))*100,2,lang)} %`:'—']]);
+  D.P(E?`Status: ${b.status==='released'?'released':'not released'}${b.releasedBy?' by '+b.releasedBy:''}${b.releasedAt?' on '+dt(b.releasedAt,lang):''}.`:`Status: ${b.status==='released'?'freigegeben':'nicht freigegeben'}${b.releasedBy?' durch '+b.releasedBy:''}${b.releasedAt?' am '+dt(b.releasedAt,lang):''}.`,{bold:1});
+  D.P(E?'Manufactured according to the principles of Good Manufacturing Practice (EN ISO 22716). For professional further processing.':'Herstellung nach den Grundsätzen der Guten Herstellungspraxis (DIN EN ISO 22716). Für die gewerbliche Weiterverarbeitung.',{size:8.5});
+  D.Sign(E?'Date, signature (release)':'Datum, Unterschrift (Freigabe)');
+  footer(D,`CoA ${b.batchNo} · ${s.company}`);await saveBlob(D.doc,`CoA_${fnSafe(b.batchNo)}_${lang.toUpperCase()}.pdf`)}
+
+/* ---------- batch manufacturing record (internal, DE) ---------- */
+async function pdfRecord(p,b){const s=state.settings;const D=newDoc();const tol=v=>v?`${nf(v,1,'de')} g`:'—';
+  D.Title('Herstellprotokoll / Chargenprotokoll','intern – Aufbewahrung mindestens 5 Jahre (DIN EN ISO 22716)');
+  D.KV([['Produkt',p.name],['Artikelnummer',p.code||'—'],['Charge',b.batchNo],['Herstelldatum',dt(b.createdAt,'de')],['Mindestens haltbar bis',b.bestBefore?dt(b.bestBefore,'de'):'—'],['Hergestellt von',b.operator||'—'],['Herstellort',`${s.street}, ${s.city}`]]);
+  D.H2('Rohstoffe und Einwaage');D.TB(['Rohstoff','Lieferanten-Charge','Soll','Ist','Abw.'],[[`Duftöl ${p.oilCode||''} (Werks-Nr. ${p.factoryCode||'—'})`,b.oilLot||'—',tol(num(b.oilG)),tol(num(b.oilActualG)),dev(b.oilG,b.oilActualG)],['Ethanol (vergällt)',b.alcLot||'—',tol(num(b.alcG)),tol(num(b.alcActualG)),dev(b.alcG,b.alcActualG)]]);
+  D.H2('Herstellschritte');D.TB(['Schritt','Beschreibung','Erledigt'],[['1','Arbeitsplatz und Geräte sauber, Waage geprüft',b.chkClean?'ja':'—'],['2','Duftöl einwiegen','ja'],['3','Ethanol zugeben, homogen mischen (mind. 10 min)','ja'],['4','Sichtprüfung: klar, ohne Trübung',b.chkAppearance?'ja':'—'],['5','Geruchsprüfung gegen Standardmuster',b.chkOdor?'ja':'—'],['6','Dichte messen (20 °C)',b.densityMeas?`${nf(num(b.densityMeas),3,'de')} g/ml`:'—'],['7',`Abfüllen in ${b.units||'—'} × ${p.volumeL||1} L, etikettieren mit Charge`,'ja'],['8',`Rückstellmuster (50 ml) entnommen – Lagerort: ${b.retainLoc||'—'}`,b.retain?'ja':'—']]);
+  D.KV([['Status',b.status==='released'?'freigegeben':b.status==='blocked'?'gesperrt':'Quarantäne'],['Freigabe durch',b.releasedBy||'—'],['Freigabe am',b.releasedAt?dt(b.releasedAt,'de'):'—'],['Bemerkungen',b.notes||'—']]);
+  D.H2('Lieferungen (Rückverfolgbarkeit)');D.TB(['Datum','Kunde','Auftrag','Menge'],(b.deliveries||[]).map(d=>[dt(d.date,'de'),d.customer||'—',d.order||'—',String(d.qty||'')]).concat((b.deliveries||[]).length?[]:[['—','—','—','—']]));
+  D.Sign('Datum, Unterschrift Herstellung · Datum, Unterschrift Freigabe');
+  footer(D,`Herstellprotokoll ${b.batchNo} · ${s.company}`);await saveBlob(D.doc,`Herstellprotokoll_${fnSafe(b.batchNo)}.pdf`)}
+function dev(soll,ist){const a=num(soll),b=num(ist);if(!a||!b)return '—';const d=(b-a)/a*100;return `${d>0?'+':''}${nf(d,1,'de')} %`}
+
+/* ---------- recall list (all customers of one batch) ---------- */
+async function pdfRecall(p,b){const s=state.settings;const D=newDoc();
+  D.Title('Rückverfolgung / Rückrufliste',`Charge ${b.batchNo} – ${p.name}`);
+  const ds=b.deliveries||[];const tot=ds.reduce((a,d)=>a+(num(d.qty)||0),0);
+  D.KV([['Charge',b.batchNo],['Hergestellt',dt(b.createdAt,'de')],['Menge hergestellt',`${b.units||'—'} × ${p.volumeL||1} L`],['Ausgeliefert',`${tot} Einheiten an ${new Set(ds.map(d=>d.customer)).size} Kunden`],['Bestand',`${(num(b.units)||0)-tot} Einheiten`],['Duftöl-Charge (Werk)',b.oilLot||'—'],['Ethanol-Charge',b.alcLot||'—']]);
+  D.TB(['Datum','Kunde','Auftrag','Menge'],ds.map(d=>[dt(d.date,'de'),d.customer||'—',d.order||'—',String(d.qty||'')]));
+  footer(D,`Rückverfolgung ${b.batchNo} · ${s.company}`);await saveBlob(D.doc,`Rueckverfolgung_${fnSafe(b.batchNo)}.pdf`)}
+
+/* ---------- account, employees, activity log ---------- */
+function renderAccount(box){const me=FH.me;const d=document.createElement('div');d.style.cssText='display:grid;gap:12px;min-width:0;max-width:100%';
+  d.innerHTML=`<div class="box"><div class="head"><div><h3>الحساب</h3><p class="hint">مسجّل باسم <b>${esc(me.user)}</b>${me.admin?' · مالك':''}</p></div><button class="btn sm" type="button" id="acOut">خروج</button></div></div>
+  ${me.admin?`<div class="box"><div class="head"><h3>الموظفون ورموز الدخول</h3><button class="btn sm" type="button" id="usRe">تحديث</button></div><div id="usList"><p class="hint">…</p></div>
+   <div class="fields"><label class="f" for="usName"><span>الاسم</span><input id="usName"></label><label class="f" for="usPin"><span>رمز الدخول (6 أحرف على الأقل مع أرقام)</span><input id="usPin" class="ltr" type="password" autocomplete="new-password"></label>
+   <label class="f" for="usRole"><span>الصلاحية</span><select id="usRole"><option value="staff">موظف</option><option value="admin">مالك (كل الصلاحيات)</option></select></label></div>
+   <div><button class="btn primary sm" type="button" id="usSave">حفظ الموظف</button></div><p class="hint">الموظف يستطيع إنشاء الدفعات والمستندات. الحذف ونشر المنتجات في المتجر للمالك فقط. لتغيير رمز موظف: اكتب اسمه نفسه ورمزاً جديداً.</p></div>
+  <div class="box"><div class="head"><h3>سجل العمليات</h3><button class="btn sm" type="button" id="lgLoad">عرض آخر 200</button></div><div id="lgList"></div></div>`:''}`;
+  box.prepend(d);$('#acOut').onclick=()=>FH.logout();
+  if(!me.admin)return;
+  const load=async()=>{const el=$('#usList');try{const L=await FH.call('users',{op:'list'});el.innerHTML=L.length?`<div class="tblwrap"><table><thead><tr><th>الاسم</th><th>الصلاحية</th><th>الحالة</th><th></th></tr></thead><tbody>${L.map(u=>`<tr><td>${esc(u.name)}</td><td>${u.role==='admin'?'مالك':'موظف'}</td><td>${u.active?'<span class="pill ok">فعّال</span>':'<span class="pill bad">موقوف</span>'}</td><td><button class="btn sm" type="button" data-ut="${esc(u.name)}" data-ua="${u.active?0:1}" data-ur="${esc(u.role)}">${u.active?'إيقاف':'تفعيل'}</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="hint">لا موظفين بعد.</p>';
+    el.querySelectorAll('[data-ut]').forEach(b=>b.onclick=async()=>{try{await FH.call('users',{op:'save',name:b.dataset.ut,role:b.dataset.ur,active:b.dataset.ua==='1'});load()}catch(e){toast(e.message)}})}catch(e){el.innerHTML=`<p class="hint">${esc(e.message)}</p>`}};
+  load();$('#usRe').onclick=load;
+  $('#usSave').onclick=async()=>{const name=$('#usName').value.trim(),pin=$('#usPin').value.trim();if(!name){toast('اكتب الاسم');return}
+    try{await FH.call('users',{op:'save',name,pin,role:$('#usRole').value,active:true});$('#usName').value='';$('#usPin').value='';toast('حُفظ الموظف');load()}catch(e){toast(e.message)}};
+  $('#lgLoad').onclick=async()=>{const el=$('#lgList');el.innerHTML='<p class="hint">…</p>';try{const L=await FH.call('log');el.innerHTML=`<div class="tblwrap"><table><thead><tr><th>الوقت</th><th>المستخدم</th><th>العملية</th><th>التفاصيل</th></tr></thead><tbody>${L.map(r=>`<tr><td class="ltr">${esc(new Date(r[0]).toLocaleString('de-DE'))}</td><td>${esc(r[1])}</td><td class="ltr">${esc(r[2])} · ${esc(r[3])}</td><td class="ltr">${esc(r[5])}</td></tr>`).join('')}</tbody></table></div>`}catch(e){el.innerHTML=`<p class="hint">${esc(e.message)}</p>`}}}
+
+/* ---------- boot ---------- */
+(async()=>{
+  if(!await FH.login())return;
+  const db=FH.db;Object.assign(state,{db,assets:FH.assets,sample:FH.sample,downloads:FH.downloads,mcp:FH.mcp,me:FH.me});
+  if(!db){toast('التخزين غير متاح الآن');render();return}
+  db.doc('config/settings').onSnapshot(sn=>{if(sn.exists){state.settings=merge(JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),sn.data());const box=$('#setv');if(box&&!box.contains(document.activeElement))renderSettings();const v=view().v;if(v==='home'||v==='guide')render()}});
+  db.collection('batches').onSnapshot(qs=>{const loc={};state.batches.forEach(b=>loc[b.id]=b);state.batches=qs.docs.map(d=>({...d.data(),id:d.id}));const v=view().v;const ae=document.activeElement;const typing=ae&&$('#view').contains(ae)&&/INPUT|TEXTAREA/.test(ae.tagName);
+    if(v==='batchd'&&state.bT){const b=state.batches.find(x=>x.id===view().bid);const l=loc[view().bid];if(b&&l)Object.assign(b,l)}
+    if(!typing&&(v==='batch'||v==='batchd'||v==='product'||v==='home'))render()});
+  db.collection('products').onSnapshot(qs=>{const local={};state.products.forEach(p=>local[p.id]=p);
+    state.products=qs.docs.map(d=>state.pending[d.id]&&local[d.id]?local[d.id]:{...merge(blankProduct(),JSON.parse(JSON.stringify(d.data()))),id:d.id}).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    const ae=document.activeElement;const typing=ae&&$('#view').contains(ae)&&/INPUT|TEXTAREA/.test(ae.tagName);if(!typing)render()},e=>toast('خطأ في التخزين: '+e.code));
+})();
+})();
+</script>
+
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})</script>
+</body>
+</html>
