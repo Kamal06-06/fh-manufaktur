@@ -468,7 +468,7 @@ async function fetchCerts(p){const code=String(p.factoryCode||'').trim();if(!cod
   try{const f=await findCerts(code);state.drive[p.id].files=f.all;
     const pick=f.en[0]||f.de[0];if(!pick){state.drive[p.id].msg='لم أجد في Google Drive ملف PDF باسم يحتوي '+code+'. اطلب الشهادات من المصنع أو ارفعها يدوياً.';return}
     p.certSrc={id:pick.id,title:pick.title,url:pick.viewUrl||'',modified:pick.modifiedTime||'',lang:f.en[0]===pick?'en':'de'};save(p);
-    if(window.FH&&FH.call){await readFromDrive(p,pick,key);return}
+    if(typeof FH!=='undefined'&&FH.call){await readFromDrive(p,pick,key);return}
     state.busy[key]=`ينزّل ${pick.title} (${fmt((+pick.fileSize||0)/1048576,1)} MB)…`;render();
     const d=await state.mcp.callTool('Google Drive','download_file_content',{fileId:pick.id},{cache:false});
     const b64=d.payload&&d.payload.content;if(!b64)throw{code:'tool_error',message:'الملف لم يصل'};
