@@ -474,7 +474,7 @@ async function pickOil(x){if(!x||!state.db)return;const ex=state.products.find(p
 function b64ToBlob(b64,type){const bin=atob(b64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type})}
 async function findCerts(code){const r=await state.mcp.callTool('Google Drive','search_files',{query:`title contains '${code.replace(/'/g,"\\'")}' and mimeType = 'application/pdf' and trashed = false`,excludeContentSnippets:true,pageSize:20},{cache:false});
   const fs=((r.payload&&r.payload.files)||[]).filter(f=>f.mimeType==='application/pdf'&&String(f.title||'').includes(code));
-  const en=fs.filter(f=>!/de-DE|_de\b|deutsch|Zertifikat|Etikett|CLP/i.test(f.title)),de=fs.filter(f=>/de-DE|_de\b|deutsch/i.test(f.title));
+  const DE=/de-DE|deutsch|[\s_-]de\.pdf$|[\s_-]de\s*\(/i,OWN=/Zertifikat|Etikett|CLP|Sicherheitsdatenblatt|Berechnungsprotokoll/i;const en=fs.filter(f=>!DE.test(f.title)&&!OWN.test(f.title)),de=fs.filter(f=>DE.test(f.title)&&!OWN.test(f.title));
   const by=a=>a.sort((x,y)=>String(y.modifiedTime).localeCompare(String(x.modifiedTime)));return{en:by(en),de:by(de),all:fs}}
 async function fetchCerts(p){const code=String(p.factoryCode||'').trim();if(!code){toast('أدخل كود المصنع أولاً');return}
   if(!state.mcp){toast('الربط مع Google غير متاح في هذا العرض');return}
