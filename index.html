@@ -209,7 +209,7 @@ let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;
 /* ---------- Grundeinstellungen ---------- */
 const CODES_SHEET='1qETeGWZcHDYu7vdP0PxMVHgbyrUk9vv_TwQSL56fAk4';
 const DEFAULT_SETTINGS={company:'Fragrance Hub Germany',street:'Am Alten Kirchplatz 10',city:'45665 Recklinghausen',country:'Deutschland',phone:'+49 2361 4878835',email:'info@fragranceshub.de',
-  docCode:'FR.SPC.01',expertEmail:'foocos.eu@gmail.com',expertName:'',
+  docCode:'FR.SPC.01',expertEmail:'foocos.eu@gmail.com',expertName:'',contact:'',
   alcohol:{name:'Alcohol denat. 96 % vol',ethanolWW:94.933,denats:[{name:'tert-Butanol',cas:'75-65-0',pct:0.103},{name:'Denatoniumbenzoat',cas:'3734-33-6',pct:0.001}]}};
 const SET_KEYS=Object.keys(DEFAULT_SETTINGS);
 const STATUS={entwurf:{t:'Entwurf',c:'warn'},bewerter:{t:'Beim Sicherheitsbewerter',c:'warn'},bewertet:{t:'Bewertung liegt vor',c:'ok'},registriert:{t:'In CPNP registriert',c:'ok'}};
@@ -404,10 +404,10 @@ Produkt: ${p.marke?p.marke+' – ':''}${p.name} (${p.code}), ${p.typ}
 Parfümöl: ${p.factoryCode}, Anteil ${fmt(c.oil,2)} % (w/w)
 Revision: ${p.doc.revNo||'1'}
 
-Die Spezifikation liegt als PDF bei.
+Die Spezifikation liegt als PDF bei.${(p.doc.revNo||'1')!=='1'?' Diese Revision ersetzt die vorherige Fassung.':''}
 
 Mit freundlichen Grüßen
-${s.company}
+${s.contact?s.contact+'\n':''}${s.company}
 ${s.street}, ${s.city}
 ${s.phone} · ${s.email}`;return{subj,body}}
 function paneSenden(p,c,L){const s=state.settings;const bad=hasBad(L);const m=mailText(p,c);
@@ -519,7 +519,7 @@ function apply(p,k,r){if(!r||typeof r!=='object')return;
 function viewSettings(){const s=state.settings,A=s.alcohol||{};const f=(k,l,o={})=>`<label class="f" for="s_${k}"><span>${l}</span><input id="s_${k}" data-s="${k}" value="${esc(s[k]??'')}" ${o.ph?`placeholder="${esc(o.ph)}"`:''}></label>`;
   return `<div><h2>Hersteller (Fragrance Hub)</h2><p class="hint">Erscheint in der Spezifikation als Herstellungsort und in der E-Mail an den Bewerter.</p></div>
   <div class="fields">${f('company','Firma')}${f('street','Straße')}${f('city','PLZ und Ort')}${f('country','Land')}${f('phone','Telefon')}${f('email','E-Mail')}</div>
-  <h3>Sicherheitsbewerter</h3><div class="fields">${f('expertEmail','E-Mail des Bewerters')}${f('expertName','Anrede / Name (für die E-Mail)',{ph:'Herr Dr. …'})}${f('docCode','Dokumentcode der Spezifikation')}</div>
+  <h3>Sicherheitsbewerter</h3><div class="fields">${f('expertEmail','E-Mail des Bewerters')}${f('expertName','Anrede / Name (für die E-Mail)',{ph:'Herr Dr. …'})}${f('docCode','Dokumentcode der Spezifikation')}${f('contact','Ansprechpartner (Unterschrift der E-Mail)',{ph:'Kamal'})}</div>
   <h3>Alkohol (für alle Produkte)</h3><p class="hint">Aus dem Datenblatt des Alkohols. Ethanol in % w/w – daraus wird Aqua berechnet.</p>
   <div class="fields"><label class="f" for="a_name"><span>Bezeichnung</span><input id="a_name" data-a="name" value="${esc(A.name||'')}"></label><label class="f" for="a_eth"><span>Ethanol (% w/w)</span><input id="a_eth" class="num" data-a="ethanolWW" inputmode="decimal" value="${esc(A.ethanolWW??'')}"></label></div>
   <div class="tblwrap"><table><thead><tr><th>Vergällungsmittel</th><th>CAS</th><th class="n">% im Alkohol</th><th></th></tr></thead><tbody>${(A.denats||[]).map((d,i)=>`<tr><td><input data-dn="${i}" data-f="name" value="${esc(d.name)}"></td><td><input class="num" data-dn="${i}" data-f="cas" value="${esc(d.cas)}"></td><td><input class="num" data-dn="${i}" data-f="pct" value="${esc(d.pct)}"></td><td><button class="btn sm" type="button" data-dnrm="${i}" aria-label="Zeile löschen">×</button></td></tr>`).join('')}</tbody></table></div>
