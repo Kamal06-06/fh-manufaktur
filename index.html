@@ -209,7 +209,7 @@ let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;
 /* ---------- Grundeinstellungen ---------- */
 const CODES_SHEET='1qETeGWZcHDYu7vdP0PxMVHgbyrUk9vv_TwQSL56fAk4';
 const DEFAULT_SETTINGS={company:'Fragrance Hub Germany',street:'Am Alten Kirchplatz 10',city:'45665 Recklinghausen',country:'Deutschland',phone:'+49 2361 4878835',email:'info@fragranceshub.de',
-  docCode:'FR.SPC.01',expertEmail:'foocos.eu@gmail.com',expertName:'',contact:'',
+  docCode:'FR.SPC.01',expertEmail:'foocos.eu@gmail.com',expertName:'',contact:'',alcoholDoc:null,alcoholSent:false,sentOils:[],
   alcohol:{name:'Alcohol denat. 96 % vol',ethanolWW:94.933,denats:[{name:'tert-Butanol',cas:'75-65-0',pct:0.103},{name:'Denatoniumbenzoat',cas:'3734-33-6',pct:0.001}]}};
 const SET_KEYS=Object.keys(DEFAULT_SETTINGS);
 const STATUS={entwurf:{t:'Entwurf',c:'warn'},bewerter:{t:'Beim Sicherheitsbewerter',c:'warn'},bewertet:{t:'Bewertung liegt vor',c:'ok'},registriert:{t:'In CPNP registriert',c:'ok'}};
@@ -224,7 +224,7 @@ function blank(){return{kind:'cpsr',status:'entwurf',
   ifra:{amendment:'',date:'',cats:{},checked:false,fileId:'',fileName:'',fileUrl:''},
   allergen:{date:'',reg2023:false,items:[],checked:false,fileId:'',fileName:'',fileUrl:''},
   sds:{date:'',appearance:'',fileId:'',fileName:'',fileUrl:''},
-  doc:{first:'',rev:'',revNo:'1',changes:''},sent:null,cpsr:null,cpnp:{nr:'',at:0},updatedAt:Date.now()}}
+  doc:{first:'',rev:'',revNo:'1',changes:''},expertCert:null,sent:null,cpsr:null,cpnp:{nr:'',at:0},updatedAt:Date.now()}}
 function merge(base,o){const r=Array.isArray(base)?[...base]:{...base};for(const k in o){if(o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])&&base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))r[k]=merge(base[k],o[k]);else r[k]=o[k]}return r}
 const curP=()=>state.products.find(p=>p.id===state.cur);
 
@@ -376,6 +376,9 @@ function paneOel(p,c,L){const d=state.drive[p.id]||{};const busy=state.busy[p.id
   ${state.codesErr?`<div class="chk bad"><i>✕</i><span>${esc(state.codesErr)}</span></div>`:''}
   ${list.length?`<div style="display:grid;gap:8px">${list.map(x=>`<button type="button" class="pcard" data-pick="${esc(x.code)}"><b>${esc(x.name)}</b>${x.fc?'<span class="pill ok">Zertifikat</span>':'<span class="pill warn">ohne Werks-Nr.</span>'}<small>${esc(x.code)}${x.fc?' · '+esc(x.fc):''}</small></button>`).join('')}</div>`:''}
   <label class="drop">${state.busy[p.id+'up']?`<span class="busy">${esc(state.busy[p.id+'up'])}</span>`:'Oder Zertifikat-PDF vom Gerät hochladen (IFRA + Allergene)'}<input type="file" accept=".pdf,application/pdf" id="certUp"></label>
+  <div class="box"><h3>Zertifikat für die Bewerterin</h3><p class="hint">Fassung <b>ohne Herstellernamen</b> (ausgestellt für Fragrance Hub Germany) – wird beim Senden mitgeschickt, wenn die Bewerterin dieses Öl noch nicht hat.</p>
+   ${p.expertCert?`<div class="file">📄 ${p.expertCert.url?`<a href="${esc(p.expertCert.url)}" target="_blank" rel="noopener">${esc(p.expertCert.name)}</a>`:esc(p.expertCert.name)}</div>`:''}
+   <label class="drop">${state.busy[p.id+'ec']?`<span class="busy">${esc(state.busy[p.id+'ec'])}</span>`:(p.expertCert?'Andere Datei wählen':'PDF hochladen (SDS + IFRA + Allergene)')}<input type="file" accept=".pdf,application/pdf" id="ecUp"></label></div>
   <h3>IFRA</h3><div class="fields">${field('ifra.amendment','Amendment',{num:1})}<label class="f" for="ifra4"><span class="req">Grenzwert Kategorie 4 (% Öl im Fertigprodukt)</span><input id="ifra4" class="num" inputmode="decimal" value="${esc((p.ifra.cats||{})['4']??'')}"></label></div>
   <h3>Allergene im Duftöl</h3>
   <div class="tblwrap"><table><thead><tr><th>Stoff</th><th>CAS</th><th class="n">% im Öl</th><th></th></tr></thead><tbody>${(p.allergen.items||[]).map((a,i)=>`<tr><td><input data-al="${i}" data-f="name" value="${esc(a.name)}" style="min-width:230px"></td><td><input class="num" data-al="${i}" data-f="cas" value="${esc(a.cas)}" style="min-width:95px"></td><td><input class="num" data-al="${i}" data-f="pct" value="${esc(a.pct)}" style="min-width:70px"></td><td><button class="btn sm" type="button" data-alrm="${i}" aria-label="Zeile löschen">×</button></td></tr>`).join('')||'<tr><td colspan="4" class="mark">Noch keine Werte – Duftöl wählen oder Zertifikat hochladen.</td></tr>'}</tbody></table></div>
@@ -395,7 +398,11 @@ function paneRezeptur(p,c,L){const A=state.settings.alcohol||{};
 
 /* 4 – Spezifikation an den Bewerter */
 const revOf=p=>parseInt(p.doc.revNo,10)||1;
-function mailText(list){const s=state.settings;const K=list[0].kunde||{};const many=list.length>1;const anyRev=list.some(p=>revOf(p)>1),allRev=list.every(p=>revOf(p)>1);
+function attachments(list){const S=state.settings,A=state.att||{};const oils=[];const seen={};
+  list.forEach(p=>{const r=oilRef(p);if(!r||seen[r])return;seen[r]=1;const known=(S.sentOils||[]).includes(r);const k='oil:'+r;
+    oils.push({k,ref:r,p,file:p.expertCert,known,on:!!p.expertCert&&(A[k]!==undefined?A[k]:!known)})});
+  const alc={k:'alc',file:S.alcoholDoc,known:!!S.alcoholSent,on:!!S.alcoholDoc&&(A.alc!==undefined?A.alc:!S.alcoholSent)};return{oils,alc}}
+function mailText(list){const s=state.settings;const att=attachments(list);const K=list[0].kunde||{};const many=list.length>1;const anyRev=list.some(p=>revOf(p)>1),allRev=list.every(p=>revOf(p)>1);
   const name=p=>`${p.marke?p.marke+' – ':''}${p.name}`;
   const subj=`Sicherheitsbewertung – ${K.firma} – ${list.map(p=>p.code+(many?'':' '+name(p))).join(', ')}${allRev&&!many?' (Rev. '+revOf(list[0])+')':allRev?' (korrigierte Fassungen)':''}`;
   const intro=many
@@ -416,7 +423,10 @@ Verantwortliche Person: ${K.firma}, ${K.strasse}, ${K.ort}
 
 ${list.map(block).join('\n\n')}
 
-${many?'Die Spezifikationen liegen als PDF bei (eine Datei pro Produkt, Dateiname mit Produktnummer).':'Die Spezifikation liegt als PDF bei.'} Wenn Ihnen etwas auffällt oder Sie noch Angaben brauchen, geben Sie mir einfach kurz Bescheid.
+Anlagen:
+${list.map(p=>`– Produktspezifikation ${p.code} (PDF)`).join('\n')}${att.oils.filter(o=>o.on).map(o=>`\n– Duftöl ${o.ref}: Sicherheitsdatenblatt mit IFRA-Zertifikat und Allergenerklärung`).join('')}${att.alc.on?'\n– Datenblatt des Alkohols (Alcohol denat.)':''}${att.oils.filter(o=>!o.on&&o.known).map(o=>`\n(Unterlagen zum Duftöl ${o.ref} liegen Ihnen bereits vor.)`).join('')}${!att.alc.on&&att.alc.known?'\n(Das Datenblatt des Alkohols liegt Ihnen bereits vor.)':''}
+
+Wenn Ihnen etwas auffällt oder Sie noch Angaben brauchen, geben Sie mir einfach kurz Bescheid.
 
 Vielen Dank für Ihre Unterstützung und herzliche Grüße
 ${s.contact?s.contact+'\n':''}${s.company}
@@ -433,6 +443,9 @@ function paneSenden(p,c,L){const s=state.settings;const bad=hasBad(L);const g=se
   ${chkList(L)}
   ${g.length>1?`<div class="box"><h3>In einer E-Mail senden</h3><p class="hint">Alle Produkte von ${esc((p.kunde||{}).firma)} – die ausgewählten gehen zusammen in einer E-Mail an den Bewerter, jedes mit eigenem PDF.</p>
    ${g.map(o=>{const so=sendable(o);const st=STATUS[o.status]||STATUS.entwurf;return `<label style="display:flex;gap:10px;align-items:center;font-size:14px"><input type="checkbox" data-sel="${esc(o.id)}" ${sel.some(x=>x.id===o.id)?'checked':''} ${so?'':'disabled'}><span><b>${esc(o.code)}</b> · ${esc(o.name||'')} · Rev. ${esc(o.doc.revNo||'1')} <span class="pill ${so?st.c:'bad'}">${so?st.t:'unvollständig'}</span></span></label>`}).join('')}</div>`:''}
+  ${(()=>{const a=attachments(sel.length?sel:[p]);return `<div class="box"><h3>Zertifikate mitsenden</h3><p class="hint">Nur nötig, wenn die Bewerterin das Öl bzw. den Alkohol noch nicht hat.</p>
+   ${a.oils.map(o=>`<label style="display:flex;gap:10px;align-items:center;font-size:14px"><input type="checkbox" data-att="${esc(o.k)}" ${o.on?'checked':''} ${o.file?'':'disabled'}><span>Duftöl <b>${esc(o.ref)}</b> – ${o.file?esc(o.file.name):'<span style="color:var(--bad)">kein Zertifikat ohne Herstellernamen hinterlegt (Schritt 2)</span>'}${o.known?' <span class="pill ok">liegt ihr vor</span>':''}</span></label>`).join('')}
+   <label style="display:flex;gap:10px;align-items:center;font-size:14px"><input type="checkbox" data-att="alc" ${a.alc.on?'checked':''} ${a.alc.file?'':'disabled'}><span>Datenblatt Alkohol – ${a.alc.file?esc(a.alc.file.name):'<span style="color:var(--bad)">nicht hinterlegt (Einstellungen)</span>'}${a.alc.known?' <span class="pill ok">liegt ihr vor</span>':''}</span></label></div>`})()}
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="specPdf" ${bad?'disabled':''}>PDF ansehen / herunterladen</button>
    <button class="btn primary" type="button" id="sendExp" ${!ok||!s.expertEmail?'disabled':''}>${sel.length>1?`${sel.length} Produkte in einer E-Mail senden`:'An Bewerter senden'} (${esc(s.expertEmail||'E-Mail fehlt')})</button></div>
   <p class="mark">Der Button lädt ${sel.length>1?'die PDFs':'das PDF'} herunter und öffnet eine fertige E-Mail im Mailprogramm. ${sel.length>1?'PDFs':'PDF'} anhängen und senden – der Status wird auf „Beim Sicherheitsbewerter“ gesetzt.</p>
@@ -470,20 +483,28 @@ function bindPane(p,c,L){const pane=$('#pane');
   const pq=$('#pickQ');if(pq)pq.oninput=()=>{state.pickQ=pq.value;clearTimeout(state.pT);state.pT=setTimeout(()=>{render();const x=$('#pickQ');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length)}},250)};
   pane.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>pickOil(p,(state.codes||[]).find(x=>x.code===b.dataset.pick)));
   const rr=$('#reRead');if(rr)rr.onclick=()=>fetchCerts(p);
+  const ec=$('#ecUp');if(ec)ec.onchange=async()=>{const f=ec.files&&ec.files[0];ec.value='';if(!f)return;state.busy[p.id+'ec']='Wird gespeichert…';render();
+    try{const up=await FH.upload(f);p.expertCert={id:up.id,url:up.url||'',name:f.name};save(p);toast('Zertifikat gespeichert')}catch(e){toast('Hochladen fehlgeschlagen: '+(e.message||e))}finally{delete state.busy[p.id+'ec'];render()}};
+  pane.querySelectorAll('[data-att]').forEach(cb=>cb.onchange=()=>{state.att=state.att||{};state.att[cb.dataset.att]=cb.checked;render()});
   const cu=$('#certUp');if(cu)cu.onchange=()=>{const f=cu.files&&cu.files[0];if(f)uploadCert(p,f);cu.value=''};
   const sp=$('#specPdf');if(sp)sp.onclick=()=>pdfSpec(p,false).catch(e=>toast('PDF fehlgeschlagen: '+(e.message||e)));
   pane.querySelectorAll('[data-sel]').forEach(cb=>cb.onchange=()=>{const ids=[...pane.querySelectorAll('[data-sel]:checked')].map(x=>x.dataset.sel);state.sel={kz:(p.kunde||{}).kuerzel,ids};render()});
   const se=$('#sendExp');if(se)se.onclick=async()=>{const list=selected(p);if(!list.length)return;se.disabled=true;
-    try{for(const o of list){await pdfSpec(o,true);await new Promise(r=>setTimeout(r,700))}const m=mailText(list);
+    try{const att=attachments(list);for(const o of list){await pdfSpec(o,true);await new Promise(r=>setTimeout(r,700))}
+      for(const f of [...att.oils.filter(o=>o.on).map(o=>o.file),...(att.alc.on?[att.alc.file]:[])]){try{await downloadDrive(f)}catch(e){toast('Zertifikat nicht geladen: '+f.name)}await new Promise(r=>setTimeout(r,700))}
+      const m=mailText(list);const S=state.settings;att.oils.filter(o=>o.on).forEach(o=>{S.sentOils=[...new Set([...(S.sentOils||[]),o.ref])]});if(att.alc.on)S.alcoholSent=true;state.att=null;saveSettings();
       location.href=`mailto:${encodeURIComponent(state.settings.expertEmail)}?subject=${encodeURIComponent(m.subj)}&body=${encodeURIComponent(m.body)}`;
       const at=Date.now();list.forEach(o=>{o.sent={at,to:state.settings.expertEmail,rev:o.doc.revNo||'1',sig:recipeSig(o),with:list.map(x=>x.code)};if(o.status==='entwurf'||o.status==='bewerter')o.status='bewerter';save(o)});
-      state.sel=null;toast(list.length>1?list.length+' PDFs heruntergeladen – alle an die E-Mail anhängen':'PDF heruntergeladen – an die E-Mail anhängen');setTimeout(render,400)}
+      state.sel=null;toast('Dateien heruntergeladen – alle an die E-Mail anhängen');setTimeout(render,400)}
     catch(e){toast('Senden fehlgeschlagen: '+(e.message||e));se.disabled=false}};
   const mc=$('#mailCopy');if(mc)mc.onclick=()=>copyText($('#mailTxt').textContent);
   const cp=$('#cpsrUp');if(cp)cp.onchange=async()=>{const f=cp.files&&cp.files[0];cp.value='';if(!f)return;state.busy[p.id+'cpsr']='Wird gespeichert…';render();
     try{const up=await FH.upload(f);p.cpsr={...(p.cpsr||{}),fileId:up.id,fileUrl:up.url||'',fileName:f.name,at:Date.now()};if(p.status!=='registriert')p.status='bewertet';save(p);toast('Bewertung abgelegt')}
     catch(e){toast('Hochladen fehlgeschlagen: '+(e.message||e.code||e))}finally{delete state.busy[p.id+'cpsr'];render()}};
   pane.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>copyText(document.getElementById(b.dataset.copy).textContent))}
+async function downloadDrive(f){const r=await FH.call('drive_download',{fileId:f.id},2);const b64=r&&(r.content||r.data);if(!b64)throw new Error('leer');
+  const bin=atob(b64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const url=URL.createObjectURL(new Blob([u],{type:'application/pdf'}));
+  const a=document.createElement('a');a.href=url;a.download=f.name||'Zertifikat.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000)}
 function copyText(t){navigator.clipboard.writeText(t).then(()=>toast('Kopiert')).catch(()=>toast('Kopieren nicht möglich – Text markieren'))}
 
 /* ---------- Duftöl: Codeliste, Zertifikate aus Drive, Upload ---------- */
@@ -523,7 +544,7 @@ async function pageImages(pdf,nums){const out=[];for(const i of nums.slice(0,6))
 const PAGE_RE={ifra:/IFRA/i,allergen:/allergen|2023\/1545|ANNEX\s*III|ANHANG\s*III|Isomethyl\s*Ionone|Hydroxycitronellal/i,sds:/Safety\s+Data\s+Sheet|Sicherheitsdatenblatt/i};
 async function uploadCert(p,file){const key=p.id+'up';if(file.size>20*1024*1024){toast('Datei größer als 20 MB');return}
   state.busy[key]='Wird gespeichert…';render();
-  try{const up=await FH.upload(file);resetCerts(p);if(!p.factoryCode)p.factoryCode=(String(file.name).match(/\b\d{7}\b/)||[''])[0];p.certSrc={id:up.id,title:file.name,url:up.url||''};
+  try{const up=await FH.upload(file);resetCerts(p);if(!p.factoryCode)p.factoryCode=(String(file.name).match(/\b\d{7}\b/)||[''])[0];p.certSrc={id:up.id,title:file.name,url:up.url||''};p.expertCert={id:up.id,url:up.url||'',name:file.name};
     KINDS.forEach(k=>Object.assign(p[k],{fileId:up.id,fileName:file.name,fileUrl:up.url||''}));save(p);
     state.busy[key]='Öffnet PDF…';render();const {pdf,pages}=await pdfPages(file);
     for(const k of KINDS){state.busy[key]='Liest '+KNAME[k]+'…';render();
@@ -546,13 +567,18 @@ function viewSettings(){const s=state.settings,A=s.alcohol||{};const f=(k,l,o={}
   <div class="fields"><label class="f" for="a_name"><span>Bezeichnung</span><input id="a_name" data-a="name" value="${esc(A.name||'')}"></label><label class="f" for="a_eth"><span>Ethanol (% w/w)</span><input id="a_eth" class="num" data-a="ethanolWW" inputmode="decimal" value="${esc(A.ethanolWW??'')}"></label></div>
   <div class="tblwrap"><table><thead><tr><th>Vergällungsmittel</th><th>CAS</th><th class="n">% im Alkohol</th><th></th></tr></thead><tbody>${(A.denats||[]).map((d,i)=>`<tr><td><input data-dn="${i}" data-f="name" value="${esc(d.name)}"></td><td><input class="num" data-dn="${i}" data-f="cas" value="${esc(d.cas)}"></td><td><input class="num" data-dn="${i}" data-f="pct" value="${esc(d.pct)}"></td><td><button class="btn sm" type="button" data-dnrm="${i}" aria-label="Zeile löschen">×</button></td></tr>`).join('')}</tbody></table></div>
   <div><button class="btn sm" type="button" id="dnAdd">+ Vergällungsmittel</button></div>
+  <div class="box"><h3>Datenblatt des Alkohols (für die Bewerterin)</h3>${s.alcoholDoc?`<div class="file">📄 ${s.alcoholDoc.url?`<a href="${esc(s.alcoholDoc.url)}" target="_blank" rel="noopener">${esc(s.alcoholDoc.name)}</a>`:esc(s.alcoholDoc.name)}</div>`:''}
+   <label class="drop">${state.busy.alc?`<span class="busy">${esc(state.busy.alc)}</span>`:(s.alcoholDoc?'Andere Datei wählen':'PDF hochladen')}<input type="file" accept=".pdf,application/pdf" id="alcUp"></label>
+   <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" id="alcSent" ${s.alcoholSent?'checked':''}>Die Bewerterin hat dieses Datenblatt bereits</label></div>
   <div class="box"><button class="btn sm" type="button" id="logout">Abmelden</button></div>`}
 function bindSettings(){const s=state.settings;
   document.querySelectorAll('[data-s]').forEach(i=>i.oninput=()=>{s[i.dataset.s]=i.value;saveSettings()});
   document.querySelectorAll('[data-a]').forEach(i=>i.oninput=()=>{s.alcohol[i.dataset.a]=i.dataset.a==='ethanolWW'?(num(i.value)??i.value):i.value;saveSettings()});
   document.querySelectorAll('[data-dn]').forEach(i=>i.oninput=()=>{s.alcohol.denats[+i.dataset.dn][i.dataset.f]=i.value;saveSettings()});
   document.querySelectorAll('[data-dnrm]').forEach(b=>b.onclick=()=>{s.alcohol.denats.splice(+b.dataset.dnrm,1);saveSettings();render()});
-  $('#dnAdd').onclick=()=>{(s.alcohol.denats=s.alcohol.denats||[]).push({name:'',cas:'',pct:''});saveSettings();render()};$('#logout').onclick=()=>FH.logout()}
+  $('#dnAdd').onclick=()=>{(s.alcohol.denats=s.alcohol.denats||[]).push({name:'',cas:'',pct:''});saveSettings();render()};
+  const au=$('#alcUp');if(au)au.onchange=async()=>{const f=au.files&&au.files[0];au.value='';if(!f)return;state.busy.alc='Wird gespeichert…';render();try{const up=await FH.upload(f);s.alcoholDoc={id:up.id,url:up.url||'',name:f.name};s.alcoholSent=false;saveSettings();toast('Datenblatt gespeichert')}catch(e){toast('Hochladen fehlgeschlagen')}finally{delete state.busy.alc;render()}};
+  const as=$('#alcSent');if(as)as.onchange=()=>{s.alcoholSent=as.checked;saveSettings()};$('#logout').onclick=()=>FH.logout()}
 
 /* ---------- PDF: PRODUCT SPECIFICATION ---------- */
 const pdfSafe=s=>String(s??'').replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/→/g,'->').replace(/[^\x00-\xFF€–—‘’“”•…]/g,'?');
