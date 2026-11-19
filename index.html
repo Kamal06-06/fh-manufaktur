@@ -396,9 +396,9 @@ function paneRezeptur(p,c,L){const A=state.settings.alcohol||{};
 /* 4 – Spezifikation an den Bewerter */
 function mailText(p,c){const s=state.settings,K=p.kunde||{};const rev=parseInt(p.doc.revNo,10)||1;
   const subj=`Sicherheitsbewertung – ${K.firma} – ${p.code} ${p.marke?p.marke+' ':''}${p.name}${(p.doc.revNo||'1')!=='1'?' (Rev. '+p.doc.revNo+')':''}`;
-  const body=`Guten Tag${s.expertName?' '+s.expertName:''},
+  const body=`${s.expertName?'Liebe '+s.expertName:'Guten Tag'},
 
-${rev>1?`anbei erhalten Sie die korrigierte Produktspezifikation (Revision ${rev}). Sie ersetzt die bisherige Fassung – bitte verwenden Sie diese für die Sicherheitsbewertung (CPSR).`:'anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte um Erstellung der Sicherheitsbewertung (CPSR):'}
+ich hoffe, es geht Ihnen gut. ${rev>1?`anbei erhalten Sie die korrigierte Produktspezifikation (Revision ${rev}). Sie ersetzt die bisherige Fassung – bitte verwenden Sie diese für die Sicherheitsbewertung (CPSR).`:'anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte um Erstellung der Sicherheitsbewertung (CPSR):'}
 
 Verantwortliche Person: ${K.firma}, ${K.strasse}, ${K.ort}
 Produkt: ${p.marke?p.marke+' – ':''}${p.name} (${p.code}), ${p.typ}
@@ -408,9 +408,9 @@ ${rev>1&&p.doc.changes?`
 Änderungen gegenüber der vorherigen Fassung:
 ${String(p.doc.changes).split('\n').filter(x=>x.trim()).map(x=>'– '+x.trim().replace(/^[-–•]\s*/,'')).join('\n')}
 `:''}
-Die Spezifikation liegt als PDF bei. Bei Fragen oder Anmerkungen geben Sie uns gerne Bescheid.
+Die Spezifikation liegt als PDF bei. Wenn Ihnen etwas auffällt oder Sie noch Angaben brauchen, geben Sie mir einfach kurz Bescheid.
 
-Mit freundlichen Grüßen
+Vielen Dank für Ihre Unterstützung und herzliche Grüße
 ${s.contact?s.contact+'\n':''}${s.company}
 ${s.street}, ${s.city}
 ${s.phone} · ${s.email}`;return{subj,body}}
@@ -524,7 +524,7 @@ function apply(p,k,r){if(!r||typeof r!=='object')return;
 function viewSettings(){const s=state.settings,A=s.alcohol||{};const f=(k,l,o={})=>`<label class="f" for="s_${k}"><span>${l}</span><input id="s_${k}" data-s="${k}" value="${esc(s[k]??'')}" ${o.ph?`placeholder="${esc(o.ph)}"`:''}></label>`;
   return `<div><h2>Hersteller (Fragrance Hub)</h2><p class="hint">Erscheint in der Spezifikation als Herstellungsort und in der E-Mail an den Bewerter.</p></div>
   <div class="fields">${f('company','Firma')}${f('street','Straße')}${f('city','PLZ und Ort')}${f('country','Land')}${f('phone','Telefon')}${f('email','E-Mail')}</div>
-  <h3>Sicherheitsbewerter</h3><div class="fields">${f('expertEmail','E-Mail des Bewerters')}${f('expertName','Anrede / Name (für die E-Mail)',{ph:'Herr Dr. …'})}${f('docCode','Dokumentcode der Spezifikation')}${f('contact','Ansprechpartner (Unterschrift der E-Mail)',{ph:'Kamal'})}</div>
+  <h3>Sicherheitsbewerter</h3><div class="fields">${f('expertEmail','E-Mail des Bewerters')}${f('expertName','Vorname der Bewerterin (Anrede „Liebe …“)',{ph:'Kirsten'})}${f('docCode','Dokumentcode der Spezifikation')}${f('contact','Ansprechpartner (Unterschrift der E-Mail)',{ph:'Kamal'})}</div>
   <h3>Alkohol (für alle Produkte)</h3><p class="hint">Aus dem Datenblatt des Alkohols. Ethanol in % w/w – daraus wird Aqua berechnet.</p>
   <div class="fields"><label class="f" for="a_name"><span>Bezeichnung</span><input id="a_name" data-a="name" value="${esc(A.name||'')}"></label><label class="f" for="a_eth"><span>Ethanol (% w/w)</span><input id="a_eth" class="num" data-a="ethanolWW" inputmode="decimal" value="${esc(A.ethanolWW??'')}"></label></div>
   <div class="tblwrap"><table><thead><tr><th>Vergällungsmittel</th><th>CAS</th><th class="n">% im Alkohol</th><th></th></tr></thead><tbody>${(A.denats||[]).map((d,i)=>`<tr><td><input data-dn="${i}" data-f="name" value="${esc(d.name)}"></td><td><input class="num" data-dn="${i}" data-f="cas" value="${esc(d.cas)}"></td><td><input class="num" data-dn="${i}" data-f="pct" value="${esc(d.pct)}"></td><td><button class="btn sm" type="button" data-dnrm="${i}" aria-label="Zeile löschen">×</button></td></tr>`).join('')}</tbody></table></div>
