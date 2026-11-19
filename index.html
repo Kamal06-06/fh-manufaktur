@@ -499,7 +499,7 @@ async function fetchCerts(p){const code=String(p.factoryCode||'').trim();if(!cod
 async function pdfPages(file){const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;const pages=[];
   for(let i=1;i<=pdf.numPages;i++){const tc=await(await pdf.getPage(i)).getTextContent();let out='',last=null,line='';for(const it of tc.items){const y=Math.round(it.transform[5]);if(last!==null&&Math.abs(y-last)>2){out+=line+'\n';line=''}line+=(line?' ':'')+it.str;last=y}pages.push(out+line)}return{pdf,pages}}
 async function pageImages(pdf,nums){const out=[];for(const i of nums.slice(0,6)){const pg=await pdf.getPage(i);const vp=pg.getViewport({scale:2});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);await pg.render({canvasContext:ctx,viewport:vp}).promise;let q=.9,b;do{b=await new Promise(r=>cv.toBlob(r,'image/jpeg',q));q-=.15}while(b.size>3500000&&q>.3);out.push(b)}return out}
-const PAGE_RE={ifra:/IFRA/i,allergen:/allergen|2023\/1545|ANNEX\s*III|ANHANG\s*III/i,sds:/Safety\s+Data\s+Sheet|Sicherheitsdatenblatt/i};
+const PAGE_RE={ifra:/IFRA/i,allergen:/allergen|2023\/1545|ANNEX\s*III|ANHANG\s*III|Isomethyl\s*Ionone|Hydroxycitronellal/i,sds:/Safety\s+Data\s+Sheet|Sicherheitsdatenblatt/i};
 async function uploadCert(p,file){const key=p.id+'up';if(file.size>20*1024*1024){toast('Datei größer als 20 MB');return}
   state.busy[key]='Wird gespeichert…';render();
   try{const up=await FH.upload(file);resetCerts(p);if(!p.factoryCode)p.factoryCode=(String(file.name).match(/\b\d{7}\b/)||[''])[0];p.certSrc={id:up.id,title:file.name,url:up.url||''};
