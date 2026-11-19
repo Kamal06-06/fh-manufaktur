@@ -398,7 +398,9 @@ function mailText(p,c){const s=state.settings,K=p.kunde||{};const rev=parseInt(p
   const subj=`Sicherheitsbewertung – ${K.firma} – ${p.code} ${p.marke?p.marke+' ':''}${p.name}${(p.doc.revNo||'1')!=='1'?' (Rev. '+p.doc.revNo+')':''}`;
   const body=`${s.expertName?'Liebe '+s.expertName:'Guten Tag'},
 
-ich hoffe, es geht Ihnen gut. ${rev>1?`anbei erhalten Sie die korrigierte Produktspezifikation (Revision ${rev}). Sie ersetzt die bisherige Fassung – bitte verwenden Sie diese für die Sicherheitsbewertung (CPSR).`:'anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte um Erstellung der Sicherheitsbewertung (CPSR):'}
+ich hoffe, es geht Ihnen gut.
+
+${rev>1?`Anbei erhalten Sie die korrigierte Produktspezifikation (Revision ${rev}). Sie ersetzt die bisherige Fassung – bitte verwenden Sie diese für die Sicherheitsbewertung (CPSR).`:'Anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte um Erstellung der Sicherheitsbewertung (CPSR):'}
 
 Verantwortliche Person: ${K.firma}, ${K.strasse}, ${K.ort}
 Produkt: ${p.marke?p.marke+' – ':''}${p.name} (${p.code}), ${p.typ}
