@@ -394,36 +394,48 @@ function paneRezeptur(p,c,L){const A=state.settings.alcohol||{};
   <div class="box"><h3>INCI-Liste für das Etikett</h3><p style="margin:0;font-size:14px">${esc(c.label.join(', '))}</p></div>${chkList(L,'rezeptur')}`}
 
 /* 4 – Spezifikation an den Bewerter */
-function mailText(p,c){const s=state.settings,K=p.kunde||{};const rev=parseInt(p.doc.revNo,10)||1;
-  const subj=`Sicherheitsbewertung – ${K.firma} – ${p.code} ${p.marke?p.marke+' ':''}${p.name}${(p.doc.revNo||'1')!=='1'?' (Rev. '+p.doc.revNo+')':''}`;
+const revOf=p=>parseInt(p.doc.revNo,10)||1;
+function mailText(list){const s=state.settings;const K=list[0].kunde||{};const many=list.length>1;const anyRev=list.some(p=>revOf(p)>1),allRev=list.every(p=>revOf(p)>1);
+  const name=p=>`${p.marke?p.marke+' – ':''}${p.name}`;
+  const subj=`Sicherheitsbewertung – ${K.firma} – ${list.map(p=>p.code+(many?'':' '+name(p))).join(', ')}${allRev&&!many?' (Rev. '+revOf(list[0])+')':allRev?' (korrigierte Fassungen)':''}`;
+  const intro=many
+    ?(allRev?`Anbei erhalten Sie die korrigierten Produktspezifikationen für ${list.length} Produkte. Sie ersetzen die bisherigen Fassungen – bitte verwenden Sie diese für die Sicherheitsbewertungen (CPSR).`
+            :`Anbei erhalten Sie die Produktspezifikationen für ${list.length} Produkte mit der Bitte um Erstellung der Sicherheitsbewertungen (CPSR)${anyRev?' – bei korrigierten Fassungen ersetzt die neue Revision die bisherige':''}.`)
+    :(anyRev?`Anbei erhalten Sie die korrigierte Produktspezifikation (Revision ${revOf(list[0])}). Sie ersetzt die bisherige Fassung – bitte verwenden Sie diese für die Sicherheitsbewertung (CPSR).`
+            :'Anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte um Erstellung der Sicherheitsbewertung (CPSR):');
+  const block=(p,i)=>{const c=compute(p);const r=revOf(p);const ch=r>1&&p.doc.changes?String(p.doc.changes).split('\n').filter(x=>x.trim()).map(x=>'   – '+x.trim().replace(/^[-–•]\s*/,'')).join('\n'):'';
+    return `${many?(i+1)+'. ':''}${p.code} · ${name(p)} (${p.typ})
+   Parfümöl: ${oilRef(p)}, Anteil ${fmt(c.oil,2)} % (w/w) · Revision ${r}${ch?'\n   Änderungen gegenüber der vorherigen Fassung:\n'+ch:''}`};
   const body=`${s.expertName?'Liebe '+s.expertName:'Guten Tag'},
 
 ich hoffe, es geht Ihnen gut.
 
-${rev>1?`Anbei erhalten Sie die korrigierte Produktspezifikation (Revision ${rev}). Sie ersetzt die bisherige Fassung – bitte verwenden Sie diese für die Sicherheitsbewertung (CPSR).`:'Anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte um Erstellung der Sicherheitsbewertung (CPSR):'}
+${intro}
 
 Verantwortliche Person: ${K.firma}, ${K.strasse}, ${K.ort}
-Produkt: ${p.marke?p.marke+' – ':''}${p.name} (${p.code}), ${p.typ}
-Parfümöl: ${oilRef(p)}, Anteil ${fmt(c.oil,2)} % (w/w)
-Revision: ${rev}
-${rev>1&&p.doc.changes?`
-Änderungen gegenüber der vorherigen Fassung:
-${String(p.doc.changes).split('\n').filter(x=>x.trim()).map(x=>'– '+x.trim().replace(/^[-–•]\s*/,'')).join('\n')}
-`:''}
-Die Spezifikation liegt als PDF bei. Wenn Ihnen etwas auffällt oder Sie noch Angaben brauchen, geben Sie mir einfach kurz Bescheid.
+
+${list.map(block).join('\n\n')}
+
+${many?'Die Spezifikationen liegen als PDF bei (eine Datei pro Produkt, Dateiname mit Produktnummer).':'Die Spezifikation liegt als PDF bei.'} Wenn Ihnen etwas auffällt oder Sie noch Angaben brauchen, geben Sie mir einfach kurz Bescheid.
 
 Vielen Dank für Ihre Unterstützung und herzliche Grüße
 ${s.contact?s.contact+'\n':''}${s.company}
 ${s.street}, ${s.city}
 ${s.phone} · ${s.email}`;return{subj,body}}
-function paneSenden(p,c,L){const s=state.settings;const bad=hasBad(L);const m=mailText(p,c);
+const sendable=p=>!hasBad(checks(p,compute(p)));
+const needsSend=p=>!p.sent||p.sent.sig!==recipeSig(p)||String(p.sent.rev)!==String(p.doc.revNo||'1');
+function sendGroup(p){const kz=(p.kunde||{}).kuerzel;return state.products.filter(o=>o.kunde&&o.kunde.kuerzel===kz).sort((a,b)=>String(a.code).localeCompare(String(b.code)))}
+function selected(p){const g=sendGroup(p);const sel=state.sel&&state.sel.kz===(p.kunde||{}).kuerzel?state.sel.ids:null;return g.filter(o=>sel?sel.includes(o.id):(o.id===p.id||(needsSend(o)&&sendable(o))))}
+function paneSenden(p,c,L){const s=state.settings;const bad=hasBad(L);const g=sendGroup(p);const sel=selected(p);const ok=sel.length&&sel.every(sendable);const m=mailText(sel.length?sel:[p]);
   return `<div><h2>Spezifikation an den Sicherheitsbewerter</h2><p class="hint">Format „PRODUCT SPECIFICATION“, wie vom Bewerter akzeptiert. Alle Werte kommen aus Rezeptur und Zertifikaten.</p></div>
   <div class="fields">${field('doc.first','Erstausgabe',{ph:deDate()})}${field('doc.rev','Revisionsdatum')}${field('doc.revNo','Revisionsnummer',{num:1,help:'nach jeder Änderung der Rezeptur erhöhen'})}</div>
-  ${(parseInt(p.doc.revNo,10)||1)>1?`<label class="f" for="docChanges"><span>Änderungen gegenüber der vorherigen Fassung (eine pro Zeile – steht in der E-Mail)</span><textarea id="docChanges" rows="3" data-path="doc.changes">${esc(p.doc.changes||'')}</textarea></label>`:''}
+  ${revOf(p)>1?`<label class="f" for="docChanges"><span>Änderungen gegenüber der vorherigen Fassung (eine pro Zeile – steht in der E-Mail)</span><textarea id="docChanges" rows="3" data-path="doc.changes">${esc(p.doc.changes||'')}</textarea></label>`:''}
   ${chkList(L)}
+  ${g.length>1?`<div class="box"><h3>In einer E-Mail senden</h3><p class="hint">Alle Produkte von ${esc((p.kunde||{}).firma)} – die ausgewählten gehen zusammen in einer E-Mail an den Bewerter, jedes mit eigenem PDF.</p>
+   ${g.map(o=>{const so=sendable(o);const st=STATUS[o.status]||STATUS.entwurf;return `<label style="display:flex;gap:10px;align-items:center;font-size:14px"><input type="checkbox" data-sel="${esc(o.id)}" ${sel.some(x=>x.id===o.id)?'checked':''} ${so?'':'disabled'}><span><b>${esc(o.code)}</b> · ${esc(o.name||'')} · Rev. ${esc(o.doc.revNo||'1')} <span class="pill ${so?st.c:'bad'}">${so?st.t:'unvollständig'}</span></span></label>`}).join('')}</div>`:''}
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="specPdf" ${bad?'disabled':''}>PDF ansehen / herunterladen</button>
-   <button class="btn primary" type="button" id="sendExp" ${bad||!s.expertEmail?'disabled':''}>An Bewerter senden (${esc(s.expertEmail||'E-Mail fehlt')})</button></div>
-  <p class="mark">„An Bewerter senden“ lädt das PDF herunter und öffnet eine fertige E-Mail im Mailprogramm. PDF anhängen und senden – der Status wird auf „Beim Sicherheitsbewerter“ gesetzt.</p>
+   <button class="btn primary" type="button" id="sendExp" ${!ok||!s.expertEmail?'disabled':''}>${sel.length>1?`${sel.length} Produkte in einer E-Mail senden`:'An Bewerter senden'} (${esc(s.expertEmail||'E-Mail fehlt')})</button></div>
+  <p class="mark">Der Button lädt ${sel.length>1?'die PDFs':'das PDF'} herunter und öffnet eine fertige E-Mail im Mailprogramm. ${sel.length>1?'PDFs':'PDF'} anhängen und senden – der Status wird auf „Beim Sicherheitsbewerter“ gesetzt.</p>
   <details><summary>E-Mail-Text</summary><pre class="mail" id="mailTxt">${esc(m.subj+'\n\n'+m.body)}</pre><button class="btn sm" type="button" id="mailCopy">Text kopieren</button></details>
   ${p.sent?`<div class="chk ok"><i>✓</i><span>Gesendet am ${deDate(p.sent.at)} an ${esc(p.sent.to)} (Revision ${esc(p.sent.rev||'1')}).</span></div>`:''}`}
 
@@ -460,10 +472,13 @@ function bindPane(p,c,L){const pane=$('#pane');
   const rr=$('#reRead');if(rr)rr.onclick=()=>fetchCerts(p);
   const cu=$('#certUp');if(cu)cu.onchange=()=>{const f=cu.files&&cu.files[0];if(f)uploadCert(p,f);cu.value=''};
   const sp=$('#specPdf');if(sp)sp.onclick=()=>pdfSpec(p,false).catch(e=>toast('PDF fehlgeschlagen: '+(e.message||e)));
-  const se=$('#sendExp');if(se)se.onclick=async()=>{try{await pdfSpec(p,true);const m=mailText(p,c);
+  pane.querySelectorAll('[data-sel]').forEach(cb=>cb.onchange=()=>{const ids=[...pane.querySelectorAll('[data-sel]:checked')].map(x=>x.dataset.sel);state.sel={kz:(p.kunde||{}).kuerzel,ids};render()});
+  const se=$('#sendExp');if(se)se.onclick=async()=>{const list=selected(p);if(!list.length)return;se.disabled=true;
+    try{for(const o of list){await pdfSpec(o,true);await new Promise(r=>setTimeout(r,700))}const m=mailText(list);
       location.href=`mailto:${encodeURIComponent(state.settings.expertEmail)}?subject=${encodeURIComponent(m.subj)}&body=${encodeURIComponent(m.body)}`;
-      p.sent={at:Date.now(),to:state.settings.expertEmail,rev:p.doc.revNo||'1',sig:recipeSig(p)};if(p.status==='entwurf'||p.status==='bewerter')p.status='bewerter';save(p);setTimeout(render,400)}
-    catch(e){toast('Senden fehlgeschlagen: '+(e.message||e))}};
+      const at=Date.now();list.forEach(o=>{o.sent={at,to:state.settings.expertEmail,rev:o.doc.revNo||'1',sig:recipeSig(o),with:list.map(x=>x.code)};if(o.status==='entwurf'||o.status==='bewerter')o.status='bewerter';save(o)});
+      state.sel=null;toast(list.length>1?list.length+' PDFs heruntergeladen – alle an die E-Mail anhängen':'PDF heruntergeladen – an die E-Mail anhängen');setTimeout(render,400)}
+    catch(e){toast('Senden fehlgeschlagen: '+(e.message||e));se.disabled=false}};
   const mc=$('#mailCopy');if(mc)mc.onclick=()=>copyText($('#mailTxt').textContent);
   const cp=$('#cpsrUp');if(cp)cp.onchange=async()=>{const f=cp.files&&cp.files[0];cp.value='';if(!f)return;state.busy[p.id+'cpsr']='Wird gespeichert…';render();
     try{const up=await FH.upload(f);p.cpsr={...(p.cpsr||{}),fileId:up.id,fileUrl:up.url||'',fileName:f.name,at:Date.now()};if(p.status!=='registriert')p.status='bewertet';save(p);toast('Bewertung abgelegt')}
