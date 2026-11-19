@@ -570,13 +570,18 @@ function viewSettings(){const s=state.settings,A=s.alcohol||{};const f=(k,l,o={}
   <div class="box"><h3>Datenblatt des Alkohols (für die Bewerterin)</h3>${s.alcoholDoc?`<div class="file">📄 ${s.alcoholDoc.url?`<a href="${esc(s.alcoholDoc.url)}" target="_blank" rel="noopener">${esc(s.alcoholDoc.name)}</a>`:esc(s.alcoholDoc.name)}</div>`:''}
    <label class="drop">${state.busy.alc?`<span class="busy">${esc(state.busy.alc)}</span>`:(s.alcoholDoc?'Andere Datei wählen':'PDF hochladen')}<input type="file" accept=".pdf,application/pdf" id="alcUp"></label>
    <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" id="alcSent" ${s.alcoholSent?'checked':''}>Die Bewerterin hat dieses Datenblatt bereits</label></div>
+  ${FH.me.admin?`<div class="box"><h3>Zugänge</h3><p class="hint">Nur Personen mit aktivem Zugang können die App öffnen. Sie selbst (Inhaber) sind immer aktiv.</p><div id="usList"><span class="busy">Wird geladen…</span></div></div>`:''}
   <div class="box"><button class="btn sm" type="button" id="logout">Abmelden</button></div>`}
+async function loadUsers(){const el=$('#usList');if(!el)return;try{const L=await FH.call('users',{op:'list'});
+  el.innerHTML=L.length?L.map(u=>`<div class="docrow"><div><b>${esc(u.name)}</b><p>${u.role==='admin'?'Inhaber':'Mitarbeiter'}</p></div><span class="pill ${u.active?'ok':'bad'}">${u.active?'aktiv':'gesperrt'}</span><button class="btn sm" type="button" data-ut="${esc(u.name)}" data-ur="${esc(u.role)}" data-ua="${u.active?0:1}">${u.active?'Sperren':'Freigeben'}</button></div>`).join(''):'<p class="hint">Keine weiteren Zugänge.</p>';
+  el.querySelectorAll('[data-ut]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await FH.call('users',{op:'save',name:b.dataset.ut,role:b.dataset.ur,active:b.dataset.ua==='1'});loadUsers()}catch(e){toast(e.message||'Fehler')}})}
+  catch(e){el.innerHTML=`<p class="hint">${esc(e.message||'Fehler')}</p>`}}
 function bindSettings(){const s=state.settings;
   document.querySelectorAll('[data-s]').forEach(i=>i.oninput=()=>{s[i.dataset.s]=i.value;saveSettings()});
   document.querySelectorAll('[data-a]').forEach(i=>i.oninput=()=>{s.alcohol[i.dataset.a]=i.dataset.a==='ethanolWW'?(num(i.value)??i.value):i.value;saveSettings()});
   document.querySelectorAll('[data-dn]').forEach(i=>i.oninput=()=>{s.alcohol.denats[+i.dataset.dn][i.dataset.f]=i.value;saveSettings()});
   document.querySelectorAll('[data-dnrm]').forEach(b=>b.onclick=()=>{s.alcohol.denats.splice(+b.dataset.dnrm,1);saveSettings();render()});
-  $('#dnAdd').onclick=()=>{(s.alcohol.denats=s.alcohol.denats||[]).push({name:'',cas:'',pct:''});saveSettings();render()};
+  loadUsers();$('#dnAdd').onclick=()=>{(s.alcohol.denats=s.alcohol.denats||[]).push({name:'',cas:'',pct:''});saveSettings();render()};
   const au=$('#alcUp');if(au)au.onchange=async()=>{const f=au.files&&au.files[0];au.value='';if(!f)return;state.busy.alc='Wird gespeichert…';render();try{const up=await FH.upload(f);s.alcoholDoc={id:up.id,url:up.url||'',name:f.name};s.alcoholSent=false;saveSettings();toast('Datenblatt gespeichert')}catch(e){toast('Hochladen fehlgeschlagen')}finally{delete state.busy.alc;render()}};
   const as=$('#alcSent');if(as)as.onchange=()=>{s.alcoholSent=as.checked;saveSettings()};$('#logout').onclick=()=>FH.logout()}
 
