@@ -219,7 +219,7 @@ const state={settings:JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),products:[],c
 
 function blank(){return{kind:'cpsr',status:'entwurf',
   kunde:{firma:'',strasse:'',ort:'',land:'Deutschland',telefon:'',email:'',kuerzel:''},
-  code:'',name:'',typ:'Eau de Parfum',duft:'',mengen:'50 ml / 100 ml',farbe:'',pumpe:'',mhd:'36',pao:'12',stabil:false,lot:'',
+  code:'',marke:'',name:'',typ:'Eau de Parfum',duft:'',mengen:'50 ml / 100 ml',farbe:'',pumpe:'',mhd:'36',pao:'12',stabil:false,lot:'',
   oilName:'',oilCode:'',factoryCode:'',oilPct:'',certSrc:null,
   ifra:{amendment:'',date:'',cats:{},checked:false,fileId:'',fileName:'',fileUrl:''},
   allergen:{date:'',reg2023:false,items:[],checked:false,fileId:'',fileName:'',fileUrl:''},
@@ -304,7 +304,7 @@ function bindCommon(){const b=$('#goBack');if(b)b.onclick=back;const h=$('#goHom
 
 /* ---------- Start ---------- */
 function pcard(p){const s=STATUS[p.status]||STATUS.entwurf;
-  return `<button type="button" class="pcard" data-open="${esc(p.id)}"><b>${esc(p.code||'—')} · ${esc(p.name||'ohne Namen')}</b><span class="pill ${s.c}">${s.t}</span><small>${esc((p.kunde||{}).firma||'kein Kunde')} · ${esc(p.oilName||'kein Duftöl')}${p.oilPct?' · '+esc(p.oilPct)+' %':''}</small></button>`}
+  return `<button type="button" class="pcard" data-open="${esc(p.id)}"><b>${esc(p.code||'—')} · ${p.marke?esc(p.marke)+' ':''}${esc(p.name||'ohne Namen')}</b><span class="pill ${s.c}">${s.t}</span><small>${esc((p.kunde||{}).firma||'kein Kunde')} · ${esc(p.oilName||'kein Duftöl')}${p.oilPct?' · '+esc(p.oilPct)+' %':''}</small></button>`}
 function viewHome(){const P=state.products;const n=k=>P.filter(p=>p.status===k).length;const q=(state.q||'').toLowerCase();
   const list=P.filter(p=>!q||[p.code,p.name,(p.kunde||{}).firma,p.oilName].join(' ').toLowerCase().includes(q));
   return `<div class="card"><div class="head"><div><h2>Fertigparfum für Kunden</h2><p class="hint">Kundendaten eingeben, Duftöl wählen (Zertifikate werden automatisch gelesen), Spezifikation an den Sicherheitsbewerter senden, Bewertung ablegen, in CPNP melden.</p></div><button class="btn primary" type="button" id="hNew">+ Neues Produkt</button></div>
@@ -339,7 +339,7 @@ function stepDone(p,c,L,k){const bad=L.filter(x=>x.lvl==='bad'&&x.step===k).leng
 function viewProduct(p,c,L){const s=STATUS[p.status]||STATUS.entwurf;
   const sub={kunde:`${esc((p.kunde||{}).firma||'—')} · ${esc(p.name||'ohne Namen')}`,oel:p.oilName?`${esc(p.oilName)} · ${esc(p.factoryCode||'')}`:'noch kein Duftöl',rezeptur:c.oil!==null?`${fmt(c.oil,1)} % Öl · ${fmt(c.alcDen,1)} % Alkohol`:'Ölanteil fehlt',
     senden:p.sent?`gesendet am ${deDate(p.sent.at)} (Rev. ${esc(p.sent.rev||'1')})`:'noch nicht gesendet',bewertung:p.cpsr&&p.cpsr.fileId?`abgelegt am ${deDate(p.cpsr.at)}`:'noch keine Bewertung',cpnp:p.cpnp&&p.cpnp.nr?`Nr. ${esc(p.cpnp.nr)}`:(p.cpsr&&p.cpsr.fileId?'bereit zur Meldung':'erst nach der Bewertung')};
-  return `<div class="card"><div class="head"><div><h2>${esc(p.code)} · ${esc(p.name||'ohne Namen')}</h2><p class="hint">${esc((p.kunde||{}).firma||'')} · ${esc(p.typ)}</p></div><span class="pill ${s.c}">${s.t}</span></div></div>
+  return `<div class="card"><div class="head"><div><h2>${esc(p.code)} · ${esc(p.name||'ohne Namen')}</h2><p class="hint">${p.marke?'Marke '+esc(p.marke)+' · ':''}${esc((p.kunde||{}).firma||'')} · ${esc(p.typ)}</p></div><span class="pill ${s.c}">${s.t}</span></div></div>
   <div class="home">${STEPS.map((x,i)=>{const d=stepDone(p,c,L,x.k);const lock=(x.k==='cpnp'&&!(p.cpsr&&p.cpsr.fileId));return `<button class="tile ${d?'done':''}" type="button" data-step="${x.k}" ${lock?'disabled':''}><span class="ic">${d?'✓':i+1}</span><span class="tt"><b>${x.t}</b><span>${sub[x.k]}</span></span></button>`}).join('')}</div>
   <div id="delZone"><button class="btn danger sm" type="button" id="btnDel">Produkt löschen</button></div>`}
 function bindProduct(p){document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>go(b.dataset.step,{id:p.id}));
@@ -352,13 +352,14 @@ function set(o,path,v){const ks=path.split('.');let a=o;ks.slice(0,-1).forEach(k
 function field(path,label,o={}){const p=curP();const v=get(p,path);const id='f_'+path.replace(/\./g,'_');
   if(o.opts)return `<label class="f" for="${id}"><span>${label}</span><select id="${id}" data-path="${path}">${o.opts.map(x=>`<option ${x===v?'selected':''}>${esc(x)}</option>`).join('')}</select></label>`;
   return `<label class="f" for="${id}"><span class="${o.req?'req':''}">${label}</span><input id="${id}" class="${o.num?'num':''}" data-path="${path}" value="${esc(v)}" ${o.ph?`placeholder="${esc(o.ph)}"`:''} ${o.num?'inputmode="decimal"':''} ${o.ro?'readonly':''}>${o.help?`<small class="mark">${o.help}</small>`:''}</label>`}
-const chkList=(L,k)=>{const x=L.filter(i=>!k||i.step===k);return x.length?`<div class="checks">${x.map(i=>`<div class="chk ${i.lvl}"><i>${i.lvl==='ok'?'✓':i.lvl==='warn'?'!':'✕'}</i><span>${esc(i.t)}</span></div>`).join('')}</div>`:''};
+const chkList=(L,k)=>{const x=L.filter(i=>!k||i.step===k);return `<div id="chkBox" data-k="${k||''}">`+(x.length?`<div class="checks">${x.map(i=>`<div class="chk ${i.lvl}"><i>${i.lvl==='ok'?'✓':i.lvl==='warn'?'!':'✕'}</i><span>${esc(i.t)}</span></div>`).join('')}</div>`:'')+'</div>'};
+function refreshChecks(){const b=$('#chkBox'),p=curP();if(!b||!p)return;const k=b.dataset.k||'';b.outerHTML=chkList(checks(p,compute(p)),k)}
 
 /* 1 – Kunde und Produkt */
 function paneKunde(p,c,L){return `<div><h2>Kunde (verantwortliche Person)</h2><p class="hint">Diese Daten erscheinen in der Spezifikation und in der CPNP-Meldung.</p></div>
   <div class="fields">${field('kunde.firma','Firma / Name',{req:1})}${field('kunde.strasse','Straße und Hausnummer',{req:1})}${field('kunde.ort','PLZ und Ort',{req:1})}${field('kunde.land','Land')}${field('kunde.telefon','Telefon')}${field('kunde.email','E-Mail')}</div>
   <h3>Produkt</h3>
-  <div class="fields">${field('code','Produktnummer',{ro:1,help:'automatisch vergeben, eindeutig'})}${field('name','Produktname (wie auf dem Etikett)',{req:1,ph:p.code})}${field('typ','Produktart',{opts:TYPES})}
+  <div class="fields">${field('code','Produktnummer',{ro:1,help:'automatisch vergeben, eindeutig'})}${field('marke','Marke / Handelsname des Kunden',{ph:(p.kunde||{}).firma||'',help:'leer = Firmenname des Kunden'})}${field('name','Produktname (wie auf dem Etikett)',{req:1,ph:p.code})}${field('typ','Produktart',{opts:TYPES})}
    ${field('duft','Duftrichtung (für die Beschreibung)',{ph:'Floral, Sweet, Spicy, Oriental'})}${field('mengen','Füllmengen')}${field('farbe','Farbe',{ph:'Yellow to dark yellow'})}${field('pumpe','Pumpe und Kappe (Modell)',{ph:'FEA 15, PE/PP'})}</div>${chkList(L,'kunde')}`}
 
 /* 2 – Duftöl und Zertifikate */
@@ -392,13 +393,13 @@ function paneRezeptur(p,c,L){const A=state.settings.alcohol||{};
 
 /* 4 – Spezifikation an den Bewerter */
 function mailText(p,c){const s=state.settings,K=p.kunde||{};
-  const subj=`Sicherheitsbewertung – ${K.firma} – ${p.code} ${p.name}${(p.doc.revNo||'1')!=='1'?' (Rev. '+p.doc.revNo+')':''}`;
+  const subj=`Sicherheitsbewertung – ${K.firma} – ${p.code} ${p.marke?p.marke+' ':''}${p.name}${(p.doc.revNo||'1')!=='1'?' (Rev. '+p.doc.revNo+')':''}`;
   const body=`Guten Tag${s.expertName?' '+s.expertName:''},
 
 anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte um Erstellung der Sicherheitsbewertung (CPSR):
 
 Verantwortliche Person: ${K.firma}, ${K.strasse}, ${K.ort}
-Produkt: ${p.name} (${p.code}), ${p.typ}
+Produkt: ${p.marke?p.marke+' – ':''}${p.name} (${p.code}), ${p.typ}
 Parfümöl: ${p.factoryCode}, Anteil ${fmt(c.oil,2)} % (w/w)
 Revision: ${p.doc.revNo||'1'}
 
@@ -428,7 +429,7 @@ function paneBewertung(p){const busy=state.busy[p.id+'cpsr'];const f=p.cpsr||{};
 
 /* 6 – CPNP */
 function paneCpnp(p,c){const K=p.kunde||{};const s=state.settings;
-  const rows=[['Produktname',p.name],['Produktart',`${p.typ} (Spray)`],['Kategorie (im Portal wählen)','Parfums → hydroalkoholische Parfums'],['Physikalische Form','Flüssigkeit'],['Verpackung',`Glasflakon mit Sprühpumpe, ${p.mengen}`],
+  const rows=[['Marke (Handelsname)',p.marke||K.firma],['Produktname',p.name],['Vollständiger Name (Marke + Produkt)',[p.marke||K.firma,p.name].filter(Boolean).join(' ')],['Produktart',`${p.typ} (Spray)`],['Kategorie (im Portal wählen)','Parfums → hydroalkoholische Parfums'],['Physikalische Form','Flüssigkeit'],['Verpackung',`Glasflakon mit Sprühpumpe, ${p.mengen}`],
    ['Verantwortliche Person',`${K.firma}, ${K.strasse}, ${K.ort}, ${K.land||'Deutschland'}`],['Herstellungsland','Deutschland'],['Hersteller',`${s.company}, ${s.street}, ${s.city}`],
    ['Rezeptur (% w/w)',c.inci.map(x=>`${x.n} ${fmt(x.v,2)} %`).join('; ')],['Nanomaterialien','Nein'],['INCI-Liste (Etikett)',c.label.join(', ')],
    ['Sicherheitsbewertung',`${(p.cpsr||{}).fileName||'—'}${(p.cpsr||{}).datum?', '+p.cpsr.datum:''}`]];
@@ -439,7 +440,7 @@ function paneCpnp(p,c){const K=p.kunde||{};const s=state.settings;
 
 /* ---------- Ereignisse ---------- */
 function bindPane(p,c,L){const pane=$('#pane');
-  pane.querySelectorAll('[data-path]').forEach(el=>{el.addEventListener('input',()=>{set(p,el.dataset.path,el.value);if(el.dataset.path==='cpnp.nr'){p.cpnp.at=el.value?Date.now():0;p.status=el.value?'registriert':(p.cpsr&&p.cpsr.fileId?'bewertet':p.status)}save(p)});el.addEventListener('change',()=>{if(!/^(kunde\.(strasse|land|telefon|email)|duft|mengen|farbe|pumpe|lot|doc\.|cpsr\.)/.test(el.dataset.path))render()})});
+  pane.querySelectorAll('[data-path]').forEach(el=>{el.addEventListener('input',()=>{set(p,el.dataset.path,el.value);if(el.dataset.path==='cpnp.nr'){p.cpnp.at=el.value?Date.now():0;p.status=el.value?'registriert':(p.cpsr&&p.cpsr.fileId?'bewertet':p.status)}save(p)});el.addEventListener('change',()=>setTimeout(()=>{const ae=document.activeElement;if(ae&&ae!==el&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName)&&$('#pane').contains(ae))refreshChecks();else render()},0))});
   const i4=$('#ifra4');if(i4)i4.addEventListener('input',()=>{p.ifra.cats={...(p.ifra.cats||{}),'4':i4.value};save(p)});
   pane.querySelectorAll('[data-al]').forEach(el=>el.addEventListener('input',()=>{p.allergen.items[+el.dataset.al][el.dataset.f]=el.value;p.allergen.checked=false;save(p)}));
   pane.querySelectorAll('[data-alrm]').forEach(b=>b.onclick=()=>{p.allergen.items.splice(+b.dataset.alrm,1);save(p);render()});
@@ -546,8 +547,8 @@ async function pdfSpec(p,quiet){if(!window.jspdf){toast('PDF-Bibliothek nicht ge
   doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(...D.ink);doc.text('PRODUCT SPECIFICATION',M,D.y+6);
   doc.autoTable({startY:D.y,margin:{left:118,right:M},theme:'grid',body:[['Document Code',s.docCode||'FR.SPC.01'],['First Release Date',p.doc.first||deDate()],['Revision Date',p.doc.rev||p.doc.first||deDate()],['Revision Number',p.doc.revNo||'1']].map(r=>r.map(pdfSafe)),styles:{font:'helvetica',fontSize:8,cellPadding:1.2,textColor:D.ink,lineColor:[220,213,200],lineWidth:.2},columnStyles:{0:{fontStyle:'bold',fillColor:[243,233,207]}}});
   D.y=doc.lastAutoTable.finalY+4;cust.forEach((t,i)=>{doc.setFont('helvetica',i?'normal':'bold');doc.setFontSize(9);doc.text(pdfSafe(t),210-M,D.y,{align:'right'});D.y+=4.2});D.y+=3;
-  D.H1('Product info');D.KV([['Product name',pn],['Product code',p.code],['Product type',`${p.typ} (hydroalcoholic fine fragrance, spray)`],['Responsible person',cust.join(', ')]]);
-  D.H1('Product description');D.P(`"${pn}" by ${K.firma} is an ${p.typ} with a complex composition${p.duft?` of ${p.duft} notes`:''}.`);
+  D.H1('Product info');D.KV([['Brand',p.marke||K.firma],['Product name',pn],['Product code',p.code],['Product type',`${p.typ} (hydroalcoholic fine fragrance, spray)`],['Responsible person',cust.join(', ')]]);
+  D.H1('Product description');D.P(`"${pn}" by ${p.marke||K.firma} is an ${p.typ} with a complex composition${p.duft?` of ${p.duft} notes`:''}.`);
   D.H1('Ingredients (formula, % w/w)');const ethWW=num(A.ethanolWW);
   D.TB(['Raw material','% w/w'],[[`Alcohol denat. (${A.name||'Ethanol'}${ethWW!==null?`, ethanol ${nf(ethWW,1)} % w/w`:''}${(A.denats||[]).length?', denatured with '+A.denats.map(x=>x.name).filter(Boolean).join(' + '):''})`,nf(c.alc,2)+' %'],[`Fragrance oil ${p.factoryCode}`,nf(c.oil,2)+' %'],['Total','100.00 %']],{1:{halign:'right',cellWidth:30}});
   D.H2('Composition by INCI');D.TB(['INCI','CAS','% w/w'],c.inci.map(x=>[x.n.toUpperCase(),x.cas,nf(x.v,2)+' %']),{2:{halign:'right',cellWidth:30}});
@@ -573,7 +574,7 @@ async function pdfSpec(p,quiet){if(!window.jspdf){toast('PDF-Bibliothek nicht ge
   D.H2('Warnings (EN)');D.P('For external use only. Avoid contact with eyes. Keep away from heat and flame. Keep out of reach of children.');
   D.H2('Hinweise (DE)');D.P(['Nur zur äußeren Anwendung.','Kontakt mit den Augen vermeiden. Bei Augenkontakt sofort mit viel Wasser ausspülen.','Nicht auf gereizte oder verletzte Haut auftragen.','Nicht im Lippen- und Mundbereich anwenden.','Bei Hautreizung oder allergischer Reaktion die Anwendung beenden.','Außerhalb der Reichweite von Kindern aufbewahren.','Von Hitze und Flamme fernhalten.'].join('\n'));
   D.H2('Marking (to be confirmed by the client before shipment)');
-  D.KV([['Product name',pn],['Product code',p.code],['Lot number',p.lot||'see bottle'],['Production date','DD.MM.YYYY'],['Best before',`DD.MM.YYYY (${c.mhd} months)`],['PAO',`${c.pao}M`],['Production type','Handmade'],['Origin country','Germany'],['Storage','max. 25 °C'],['Nominal quantity',p.mengen],['Symbols','Flammable warning, recycling symbol, PAO symbol'],['Responsible person',cust.join(', ')]]);
+  D.KV([['Brand',p.marke||K.firma],['Product name',pn],['Product code',p.code],['Lot number',p.lot||'see bottle'],['Production date','DD.MM.YYYY'],['Best before',`DD.MM.YYYY (${c.mhd} months)`],['PAO',`${c.pao}M`],['Production type','Handmade'],['Origin country','Germany'],['Storage','max. 25 °C'],['Nominal quantity',p.mengen],['Symbols','Flammable warning, recycling symbol, PAO symbol'],['Responsible person',cust.join(', ')]]);
   const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...D.mut);doc.text(pdfSafe(`Product Specification · ${K.firma} · ${p.code} · Rev. ${p.doc.revNo||'1'}`),M,290);doc.text(`${i} / ${n}`,210-M,290,{align:'right'})}
   const fn=`${p.code}_${String(pn).replace(/[^\w.-]+/g,'_')}_PRODUCT_SPECIFICATION_Rev${p.doc.revNo||'1'}.pdf`;const blob=doc.output('blob');const u=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);if(!quiet)toast('PDF erstellt');return{fn,blob}}
