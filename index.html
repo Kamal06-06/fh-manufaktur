@@ -240,14 +240,15 @@ function compute(p){const A=state.settings.alcohol||{};const oil=num(p.oilPct);c
   const label=[...inci.map(x=>x.n),...decl.map(a=>a.name)];
   const c4=num((p.ifra.cats||{})['4']);
   return{oil,alc,eth,water,alcDen,al,decl,inci,label,c4,pao:num(p.pao)||12,mhd:num(p.mhd)||36}}
-const recipeSig=p=>JSON.stringify([num(p.oilPct),String(p.factoryCode||'').trim(),(p.allergen.items||[]).map(a=>[a.name,a.pct])]);
+const oilRef=p=>String(p.factoryCode||p.oilCode||'').trim();
+const recipeSig=p=>JSON.stringify([num(p.oilPct),oilRef(p),(p.allergen.items||[]).map(a=>[a.name,a.pct])]);
 
 /* ---------- Prüfung vor dem Versand ---------- */
 function checks(p,c){const L=[];const add=(lvl,t,step)=>L.push({lvl,t,step});const K=p.kunde||{};
   if(!K.firma||!K.strasse||!K.ort)add('bad','Kundendaten unvollständig (Firma, Straße, PLZ/Ort).','kunde');
   if(!p.code)add('bad','Produktnummer fehlt.','kunde');
   if(!p.name)add('bad','Produktname fehlt.','kunde');
-  if(!p.factoryCode)add('bad','Kein Duftöl gewählt (Werks-Nr. fehlt).','oel');
+  if(!oilRef(p))add('bad','Kein Duftöl gewählt.','oel');
   if(!(p.allergen.items||[]).length)add('bad','Allergenerklärung des Duftöls fehlt – Zertifikat laden.','oel');
   else if(!p.allergen.checked)add('warn','Allergenwerte noch nicht gegen das Original geprüft.','oel');
   if(c.oil===null||c.oil<=0||c.oil>=100)add('bad','Ölanteil (% w/w) eingeben.','rezeptur');
@@ -257,8 +258,8 @@ function checks(p,c){const L=[];const add=(lvl,t,step)=>L.push({lvl,t,step});con
   if(c.water===null)add('warn','Ethanolgehalt des Alkohols fehlt (Einstellungen) – Aqua kann nicht berechnet werden.','einst');
   if(c.eth!==null&&c.eth<20)add('warn','Ethanol unter 20 % – ein Konservierungsbelastungstest kann nötig sein.','rezeptur');
   const others=state.products.filter(o=>o.id!==p.id);
-  const fc=String(p.factoryCode||'').trim(),kz=String(K.kuerzel||'').trim();
-  if(fc&&kz){const same=others.filter(o=>String(o.kunde.kuerzel||'').trim()===kz&&String(o.factoryCode||'').trim()===fc);
+  const fc=oilRef(p),kz=String(K.kuerzel||'').trim();
+  if(fc&&kz){const same=others.filter(o=>String(o.kunde.kuerzel||'').trim()===kz&&oilRef(o)===fc);
     if(same.length)add('bad',`Dasselbe Duftöl ${fc} ist bei diesem Kunden schon in ${same.map(o=>o.code).join(', ')} – prüfen, ob das richtige Öl gewählt ist.`,'oel')}
   if(p.code&&others.some(o=>o.code===p.code))add('bad',`Produktnummer ${p.code} ist bereits vergeben.`,'kunde');
   if(!p.stabil)add('warn','Stabilitätstest (40 °C, 3 Monate) nicht bestätigt – im Dokument steht „in Durchführung“.','rezeptur');
@@ -335,10 +336,10 @@ async function create(k){if(!state.db){toast('Speicher nicht verfügbar');return
 
 /* ---------- Produktübersicht ---------- */
 function stepDone(p,c,L,k){const bad=L.filter(x=>x.lvl==='bad'&&x.step===k).length;
-  if(k==='kunde')return!bad&&p.name;if(k==='oel')return!bad&&p.factoryCode&&p.allergen.items.length&&c.c4!==null;if(k==='rezeptur')return!bad&&c.oil;
+  if(k==='kunde')return!bad&&p.name;if(k==='oel')return!bad&&oilRef(p)&&p.allergen.items.length&&c.c4!==null;if(k==='rezeptur')return!bad&&c.oil;
   if(k==='senden')return!!p.sent&&!bad;if(k==='bewertung')return!!(p.cpsr&&p.cpsr.fileId);if(k==='cpnp')return!!(p.cpnp&&p.cpnp.nr);return false}
 function viewProduct(p,c,L){const s=STATUS[p.status]||STATUS.entwurf;
-  const sub={kunde:`${esc((p.kunde||{}).firma||'—')} · ${esc(p.name||'ohne Namen')}`,oel:p.oilName?`${esc(p.oilName)} · ${esc(p.factoryCode||'')}`:'noch kein Duftöl',rezeptur:c.oil!==null?`${fmt(c.oil,1)} % Öl · ${fmt(c.alcDen,1)} % Alkohol`:'Ölanteil fehlt',
+  const sub={kunde:`${esc((p.kunde||{}).firma||'—')} · ${esc(p.name||'ohne Namen')}`,oel:p.oilName?`${esc(p.oilName)} · ${esc(oilRef(p))}`:'noch kein Duftöl',rezeptur:c.oil!==null?`${fmt(c.oil,1)} % Öl · ${fmt(c.alcDen,1)} % Alkohol`:'Ölanteil fehlt',
     senden:p.sent?`gesendet am ${deDate(p.sent.at)} (Rev. ${esc(p.sent.rev||'1')})`:'noch nicht gesendet',bewertung:p.cpsr&&p.cpsr.fileId?`abgelegt am ${deDate(p.cpsr.at)}`:'noch keine Bewertung',cpnp:p.cpnp&&p.cpnp.nr?`Nr. ${esc(p.cpnp.nr)}`:(p.cpsr&&p.cpsr.fileId?'bereit zur Meldung':'erst nach der Bewertung')};
   return `<div class="card"><div class="head"><div><h2>${esc(p.code)} · ${esc(p.name||'ohne Namen')}</h2><p class="hint">${p.marke?'Marke '+esc(p.marke)+' · ':''}${esc((p.kunde||{}).firma||'')} · ${esc(p.typ)}</p></div><span class="pill ${s.c}">${s.t}</span></div></div>
   <div class="home">${STEPS.map((x,i)=>{const d=stepDone(p,c,L,x.k);const lock=(x.k==='cpnp'&&!(p.cpsr&&p.cpsr.fileId));return `<button class="tile ${d?'done':''}" type="button" data-step="${x.k}" ${lock?'disabled':''}><span class="ic">${d?'✓':i+1}</span><span class="tt"><b>${x.t}</b><span>${sub[x.k]}</span></span></button>`}).join('')}</div>
@@ -368,10 +369,10 @@ function paneOel(p,c,L){const d=state.drive[p.id]||{};const busy=state.busy[p.id
   if(!state.codes&&!state.codesErr)loadCodes();
   const list=(state.codes||[]).filter(x=>q&&(x.name.toLowerCase().includes(q)||x.code.toLowerCase().includes(q)||x.fc.includes(q))).slice(0,30);
   return `<div><h2>Duftöl wählen</h2><p class="hint">Aus der Codeliste wählen – IFRA-Zertifikat und Allergenerklärung werden aus Google Drive geladen und automatisch gelesen.</p></div>
-  ${p.factoryCode?`<div class="box"><div class="head"><div><b>${esc(p.oilName||'Duftöl')}</b><p class="hint">${esc(p.oilCode||'')} · Werks-Nr. ${esc(p.factoryCode)}</p></div>${busy?`<span class="busy">${esc(busy)}</span>`:`<button class="btn sm" type="button" id="reRead">Zertifikate neu lesen</button>`}</div>
+  ${oilRef(p)?`<div class="box"><div class="head"><div><b>${esc(p.oilName||'Duftöl')}</b><p class="hint">${esc(p.oilCode||'')}${p.factoryCode?' · Werks-Nr. '+esc(p.factoryCode):' · keine Werks-Nr. – Zertifikat hochladen'}</p></div>${busy?`<span class="busy">${esc(busy)}</span>`:(p.factoryCode?`<button class="btn sm" type="button" id="reRead">Zertifikate neu lesen</button>`:'')}</div>
     ${p.certSrc?`<div class="file">📄 ${p.certSrc.url?`<a href="${esc(p.certSrc.url)}" target="_blank" rel="noopener">${esc(p.certSrc.title)}</a>`:esc(p.certSrc.title)}</div>`:''}
     ${d.msg?`<div class="chk warn"><i>!</i><span>${esc(d.msg)}</span></div>`:''}</div>`:''}
-  <label class="f" for="pickQ"><span>${p.factoryCode?'Anderes Duftöl suchen':'Duftöl suchen (Name, Artikelcode oder Werks-Nr.)'}</span><input id="pickQ" value="${esc(state.pickQ||'')}" placeholder="Avenuetus / CR-AVE / 1010019" autocomplete="off"></label>
+  <label class="f" for="pickQ"><span>${oilRef(p)?'Anderes Duftöl suchen':'Duftöl suchen (Name, Artikelcode oder Werks-Nr.)'}</span><input id="pickQ" value="${esc(state.pickQ||'')}" placeholder="Avenuetus / CR-AVE / 1010019" autocomplete="off"></label>
   ${state.codesErr?`<div class="chk bad"><i>✕</i><span>${esc(state.codesErr)}</span></div>`:''}
   ${list.length?`<div style="display:grid;gap:8px">${list.map(x=>`<button type="button" class="pcard" data-pick="${esc(x.code)}"><b>${esc(x.name)}</b>${x.fc?'<span class="pill ok">Zertifikat</span>':'<span class="pill warn">ohne Werks-Nr.</span>'}<small>${esc(x.code)}${x.fc?' · '+esc(x.fc):''}</small></button>`).join('')}</div>`:''}
   <label class="drop">${state.busy[p.id+'up']?`<span class="busy">${esc(state.busy[p.id+'up'])}</span>`:'Oder Zertifikat-PDF vom Gerät hochladen (IFRA + Allergene)'}<input type="file" accept=".pdf,application/pdf" id="certUp"></label>
@@ -401,7 +402,7 @@ anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte
 
 Verantwortliche Person: ${K.firma}, ${K.strasse}, ${K.ort}
 Produkt: ${p.marke?p.marke+' – ':''}${p.name} (${p.code}), ${p.typ}
-Parfümöl: ${p.factoryCode}, Anteil ${fmt(c.oil,2)} % (w/w)
+Parfümöl: ${oilRef(p)}, Anteil ${fmt(c.oil,2)} % (w/w)
 Revision: ${p.doc.revNo||'1'}
 
 Die Spezifikation liegt als PDF bei.${(p.doc.revNo||'1')!=='1'?' Diese Revision ersetzt die vorherige Fassung.':''}
@@ -551,7 +552,7 @@ async function pdfSpec(p,quiet){if(!window.jspdf){toast('PDF-Bibliothek nicht ge
   D.H1('Product info');D.KV([['Brand',p.marke||K.firma],['Product name',pn],['Product code',p.code],['Product type',`${p.typ} (hydroalcoholic fine fragrance, spray)`],['Responsible person',cust.join(', ')]]);
   D.H1('Product description');D.P(`"${pn}" by ${p.marke||K.firma} is an ${p.typ} with a complex composition${p.duft?` of ${p.duft} notes`:''}.`);
   D.H1('Ingredients (formula, % w/w)');const ethWW=num(A.ethanolWW);
-  D.TB(['Raw material','% w/w'],[[`Alcohol denat. (${A.name||'Ethanol'}${ethWW!==null?`, ethanol ${nf(ethWW,1)} % w/w`:''}${(A.denats||[]).length?', denatured with '+A.denats.map(x=>x.name).filter(Boolean).join(' + '):''})`,nf(c.alc,2)+' %'],[`Fragrance oil ${p.factoryCode}`,nf(c.oil,2)+' %'],['Total','100.00 %']],{1:{halign:'right',cellWidth:30}});
+  D.TB(['Raw material','% w/w'],[[`Alcohol denat. (${A.name||'Ethanol'}${ethWW!==null?`, ethanol ${nf(ethWW,1)} % w/w`:''}${(A.denats||[]).length?', denatured with '+A.denats.map(x=>x.name).filter(Boolean).join(' + '):''})`,nf(c.alc,2)+' %'],[`Fragrance oil ${oilRef(p)}`,nf(c.oil,2)+' %'],['Total','100.00 %']],{1:{halign:'right',cellWidth:30}});
   D.H2('Composition by INCI');D.TB(['INCI','CAS','% w/w'],c.inci.map(x=>[x.n.toUpperCase(),x.cas,nf(x.v,2)+' %']),{2:{halign:'right',cellWidth:30}});
   D.H2(`Fragrance allergens (oil content ${nf(c.oil,2)} %)`);
   D.TB(['Substance','CAS','% in raw material','% in final product','Declaration'],c.al.map(a=>[a.name,a.cas,nf(a.pin,3),nf(a.prod,4),a.decl?'Declared':'Not declared']),{2:{halign:'right'},3:{halign:'right'},4:{cellWidth:24}});
