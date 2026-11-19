@@ -224,7 +224,7 @@ function blank(){return{kind:'cpsr',status:'entwurf',
   ifra:{amendment:'',date:'',cats:{},checked:false,fileId:'',fileName:'',fileUrl:''},
   allergen:{date:'',reg2023:false,items:[],checked:false,fileId:'',fileName:'',fileUrl:''},
   sds:{date:'',appearance:'',fileId:'',fileName:'',fileUrl:''},
-  doc:{first:'',rev:'',revNo:'1'},sent:null,cpsr:null,cpnp:{nr:'',at:0},updatedAt:Date.now()}}
+  doc:{first:'',rev:'',revNo:'1',changes:''},sent:null,cpsr:null,cpnp:{nr:'',at:0},updatedAt:Date.now()}}
 function merge(base,o){const r=Array.isArray(base)?[...base]:{...base};for(const k in o){if(o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])&&base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))r[k]=merge(base[k],o[k]);else r[k]=o[k]}return r}
 const curP=()=>state.products.find(p=>p.id===state.cur);
 
@@ -394,18 +394,21 @@ function paneRezeptur(p,c,L){const A=state.settings.alcohol||{};
   <div class="box"><h3>INCI-Liste für das Etikett</h3><p style="margin:0;font-size:14px">${esc(c.label.join(', '))}</p></div>${chkList(L,'rezeptur')}`}
 
 /* 4 – Spezifikation an den Bewerter */
-function mailText(p,c){const s=state.settings,K=p.kunde||{};
+function mailText(p,c){const s=state.settings,K=p.kunde||{};const rev=parseInt(p.doc.revNo,10)||1;
   const subj=`Sicherheitsbewertung – ${K.firma} – ${p.code} ${p.marke?p.marke+' ':''}${p.name}${(p.doc.revNo||'1')!=='1'?' (Rev. '+p.doc.revNo+')':''}`;
   const body=`Guten Tag${s.expertName?' '+s.expertName:''},
 
-anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte um Erstellung der Sicherheitsbewertung (CPSR):
+${rev>1?`anbei erhalten Sie die korrigierte Produktspezifikation (Revision ${rev}). Sie ersetzt die bisherige Fassung – bitte verwenden Sie diese für die Sicherheitsbewertung (CPSR).`:'anbei erhalten Sie die Produktspezifikation für folgendes Produkt mit der Bitte um Erstellung der Sicherheitsbewertung (CPSR):'}
 
 Verantwortliche Person: ${K.firma}, ${K.strasse}, ${K.ort}
 Produkt: ${p.marke?p.marke+' – ':''}${p.name} (${p.code}), ${p.typ}
 Parfümöl: ${oilRef(p)}, Anteil ${fmt(c.oil,2)} % (w/w)
-Revision: ${p.doc.revNo||'1'}
-
-Die Spezifikation liegt als PDF bei.${(p.doc.revNo||'1')!=='1'?' Diese Revision ersetzt die vorherige Fassung.':''}
+Revision: ${rev}
+${rev>1&&p.doc.changes?`
+Änderungen gegenüber der vorherigen Fassung:
+${String(p.doc.changes).split('\n').filter(x=>x.trim()).map(x=>'– '+x.trim().replace(/^[-–•]\s*/,'')).join('\n')}
+`:''}
+Die Spezifikation liegt als PDF bei. Bei Fragen oder Anmerkungen geben Sie uns gerne Bescheid.
 
 Mit freundlichen Grüßen
 ${s.contact?s.contact+'\n':''}${s.company}
@@ -414,6 +417,7 @@ ${s.phone} · ${s.email}`;return{subj,body}}
 function paneSenden(p,c,L){const s=state.settings;const bad=hasBad(L);const m=mailText(p,c);
   return `<div><h2>Spezifikation an den Sicherheitsbewerter</h2><p class="hint">Format „PRODUCT SPECIFICATION“, wie vom Bewerter akzeptiert. Alle Werte kommen aus Rezeptur und Zertifikaten.</p></div>
   <div class="fields">${field('doc.first','Erstausgabe',{ph:deDate()})}${field('doc.rev','Revisionsdatum')}${field('doc.revNo','Revisionsnummer',{num:1,help:'nach jeder Änderung der Rezeptur erhöhen'})}</div>
+  ${(parseInt(p.doc.revNo,10)||1)>1?`<label class="f" for="docChanges"><span>Änderungen gegenüber der vorherigen Fassung (eine pro Zeile – steht in der E-Mail)</span><textarea id="docChanges" rows="3" data-path="doc.changes">${esc(p.doc.changes||'')}</textarea></label>`:''}
   ${chkList(L)}
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="specPdf" ${bad?'disabled':''}>PDF ansehen / herunterladen</button>
    <button class="btn primary" type="button" id="sendExp" ${bad||!s.expertEmail?'disabled':''}>An Bewerter senden (${esc(s.expertEmail||'E-Mail fehlt')})</button></div>
