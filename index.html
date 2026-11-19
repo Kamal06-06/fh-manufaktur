@@ -323,14 +323,15 @@ function viewNew(){const C=customers();const N=state.newCust||(state.newCust={fi
    <div><button class="btn primary" type="button" id="ncGo">Produkt für diesen Kunden anlegen</button></div></div>`}
 function bindNew(){const N=state.newCust;
   document.querySelectorAll('[data-nc]').forEach(i=>i.addEventListener('input',()=>{N[i.dataset.nc]=i.value;if(i.dataset.nc==='kuerzel')N.kuerzel=i.value.toUpperCase().replace(/[^A-Z0-9]/g,'')}));
-  const fi=$('#nc_firma');if(fi)fi.addEventListener('change',()=>{if(!N.kuerzelSet){N.kuerzel='';render()}});const kz=$('#nc_kuerzel');if(kz)kz.addEventListener('change',()=>{N.kuerzelSet=1;render()});
+  const kz=$('#nc_kuerzel'),upd=()=>{const k=N.kuerzel||suggestKz(N.firma);if(kz&&document.activeElement!==kz)kz.value=k;const h=kz&&kz.parentNode.querySelector('.mark');if(h)h.textContent='Erste Nummer: '+nextCode(k)};
+  const fi=$('#nc_firma');if(fi)fi.addEventListener('input',()=>{if(!N.kuerzelSet)N.kuerzel='';upd()});if(kz)kz.addEventListener('input',()=>{N.kuerzelSet=1;upd()});
   document.querySelectorAll('[data-cust]').forEach(b=>b.onclick=()=>{const k=customers().find(x=>x.kuerzel===b.dataset.cust);if(k){const {at,n,...rest}=k;create(rest)}});
-  $('#ncGo').onclick=()=>{const k={...N};delete k.kuerzelSet;k.kuerzel=(k.kuerzel||suggestKz(k.firma)).toUpperCase();
+  $('#ncGo').onclick=e=>{const k={...N};delete k.kuerzelSet;k.kuerzel=(k.kuerzel||suggestKz(k.firma)).toUpperCase();
     if(!k.firma||!k.strasse||!k.ort){toast('Firma, Straße und PLZ/Ort eingeben');return}
     if(customers().some(c=>c.kuerzel===k.kuerzel&&c.firma.toLowerCase()!==k.firma.toLowerCase())){toast('Kürzel '+k.kuerzel+' gehört schon zu einem anderen Kunden');return}
     create(k)}}
-async function create(k){if(!state.db){toast('Speicher nicht verfügbar');return}const b=blank();b.kunde={...b.kunde,...k};b.code=nextCode(k.kuerzel);b.doc.first=deDate();
-  try{const r=await state.db.collection('products').add(b);state.newCust=null;stack.length=1;stack.push({v:'produkt',id:r.id},{v:'kunde',id:r.id});render()}catch(e){toast('Anlegen fehlgeschlagen')}}
+async function create(k){if(!state.db){toast('Speicher nicht verfügbar');return}const btn=$('#ncGo');if(btn){btn.disabled=true;btn.textContent='Wird angelegt…'}document.querySelectorAll('[data-cust]').forEach(b=>b.disabled=true);const b=blank();b.kunde={...b.kunde,...k};b.code=nextCode(k.kuerzel);b.doc.first=deDate();
+  try{const r=await state.db.collection('products').add(b);state.newCust=null;stack.length=1;stack.push({v:'produkt',id:r.id},{v:'kunde',id:r.id});render()}catch(e){toast('Anlegen fehlgeschlagen');render()}}
 
 /* ---------- Produktübersicht ---------- */
 function stepDone(p,c,L,k){const bad=L.filter(x=>x.lvl==='bad'&&x.step===k).length;
